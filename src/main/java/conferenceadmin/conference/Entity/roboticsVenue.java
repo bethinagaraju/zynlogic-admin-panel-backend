@@ -3,26 +3,24 @@ package conferenceadmin.conference.Entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "universities")
-public class roboticsUniversity {
+@Table(name = "venues")
+public class roboticsVenue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @Column(nullable = false)
+    private String venue;
 
     private String conferencecode;
 
-    private String imagePath;
-
-    public roboticsUniversity() {
+    public roboticsVenue() {
     }
 
-    public roboticsUniversity(String name, String conferencecode, String imagePath) {
-        this.name = name;
+    public roboticsVenue(String venue, String conferencecode) {
+        this.venue = venue;
         this.conferencecode = conferencecode;
-        this.imagePath = imagePath;
     }
 
     public Long getId() {
@@ -33,12 +31,12 @@ public class roboticsUniversity {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getVenue() {
+        return venue;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setVenue(String venue) {
+        this.venue = venue;
     }
 
     public String getConferencecode() {
@@ -47,13 +45,5 @@ public class roboticsUniversity {
 
     public void setConferencecode(String conferencecode) {
         this.conferencecode = conferencecode;
-    }
-
-    public String getImagePath() {
-        return imagePath;
-    }
-
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
     }
 }

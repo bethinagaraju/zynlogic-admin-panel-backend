@@ -41,7 +41,7 @@ public class roboticsSponsorService {
         this.repository = repository;
     }
 
-    public roboticsSponsor uploadSponsor(String name, String type, MultipartFile file) throws IOException {
+    public roboticsSponsor uploadSponsor(String name, String type, String conferencecode, MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File is required");
         }
@@ -89,7 +89,7 @@ public class roboticsSponsorService {
                 }
             }
 
-            roboticsSponsor sponsor = new roboticsSponsor(name, type, imagePath);
+            roboticsSponsor sponsor = new roboticsSponsor(name, type, conferencecode, imagePath);
             return repository.save(sponsor);
         } finally {
             if (ftp.isConnected()) {
@@ -102,7 +102,7 @@ public class roboticsSponsorService {
         }
     }
 
-    public roboticsSponsor updateSponsor(Long id, String name, String type, MultipartFile file) throws IOException {
+    public roboticsSponsor updateSponsor(Long id, String name, String type, String conferencecode, MultipartFile file) throws IOException {
         roboticsSponsor sponsor = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Sponsor not found"));
 
         if (name != null && !name.isBlank()) {
@@ -110,6 +110,9 @@ public class roboticsSponsorService {
         }
         if (type != null && !type.isBlank()) {
             sponsor.setType(type);
+        }
+        if (conferencecode != null && !conferencecode.isBlank()) {
+            sponsor.setConferencecode(conferencecode);
         }
 
         if (file != null && !file.isEmpty()) {
@@ -169,6 +172,10 @@ public class roboticsSponsorService {
 
     public List<roboticsSponsor> getAllSponsors() {
         return repository.findAll();
+    }
+
+    public List<roboticsSponsor> getSponsorsByConferencecode(String conferencecode) {
+        return repository.findByConferencecode(conferencecode);
     }
 
     public roboticsSponsor getSponsorById(Long id) {

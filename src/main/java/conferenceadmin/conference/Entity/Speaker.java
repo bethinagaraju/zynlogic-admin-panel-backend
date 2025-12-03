@@ -14,14 +14,17 @@ public class Speaker {
 
     private String university;
 
+    private String conferencecode;
+
     private String imagePath;
 
     public Speaker() {
     }
 
-    public Speaker(String name, String university, String imagePath) {
+    public Speaker(String name, String university, String conferencecode, String imagePath) {
         this.name = name;
         this.university = university;
+        this.conferencecode = conferencecode;
         this.imagePath = imagePath;
     }
 
@@ -47,6 +50,14 @@ public class Speaker {
 
     public void setUniversity(String university) {
         this.university = university;
+    }
+
+    public String getConferencecode() {
+        return conferencecode;
+    }
+
+    public void setConferencecode(String conferencecode) {
+        this.conferencecode = conferencecode;
     }
 
     public String getImagePath() {

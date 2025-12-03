@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,10 +30,11 @@ public class SpeakerController {
     public ResponseEntity<?> uploadSpeaker(
             @RequestParam("image") MultipartFile image,
             @RequestParam("name") String name,
-            @RequestParam("university") String university
+            @RequestParam("university") String university,
+            @RequestParam("conferencecode") String conferencecode
     ) {
         try {
-            Speaker saved = speakerService.saveSpeaker(image, name, university);
+            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save speaker: " + e.getMessage());
@@ -51,11 +53,12 @@ public class SpeakerController {
             @RequestParam(value = "image", required = false) MultipartFile image,
             @RequestParam(value = "imageUrl", required = false) String imageUrl,
             @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "university", required = false) String university
+            @RequestParam(value = "university", required = false) String university,
+            @RequestParam(value = "conferencecode", required = false) String conferencecode
     ) {
         try {
             // uploaded file takes precedence over provided URL
-            Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university);
+            Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university, conferencecode);
             return ResponseEntity.ok(updated);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update speaker: " + e.getMessage());
@@ -79,5 +82,11 @@ public class SpeakerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
+    }
+
+    @GetMapping("/conference/{conferencecode}")
+    public ResponseEntity<java.util.List<Speaker>> getSpeakersByConferencecode(@PathVariable String conferencecode) {
+        java.util.List<Speaker> list = speakerService.getSpeakersByConferencecode(conferencecode);
+        return ResponseEntity.ok(list);
     }
 }

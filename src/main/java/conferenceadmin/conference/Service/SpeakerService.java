@@ -43,7 +43,7 @@ public class SpeakerService {
         this.speakerRepository = speakerRepository;
     }
 
-    public Speaker saveSpeaker(MultipartFile image, String name, String university) throws IOException {
+    public Speaker saveSpeaker(MultipartFile image, String name, String university, String conferencecode) throws IOException {
         String original = Objects.requireNonNull(image.getOriginalFilename());
         String filename = System.currentTimeMillis() + "_" + original.replaceAll("[^a-zA-Z0-9._-]", "_");
 
@@ -88,7 +88,7 @@ public class SpeakerService {
         }
         imagePath += filename;
 
-        Speaker speaker = new Speaker(name, university, imagePath);
+        Speaker speaker = new Speaker(name, university, conferencecode, imagePath);
         return speakerRepository.save(speaker);
     }
 
@@ -100,7 +100,7 @@ public class SpeakerService {
         return speakerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Speaker not found"));
     }
 
-    public Speaker updateSpeaker(Long id, MultipartFile image, String imageUrl, String name, String university) throws IOException {
+    public Speaker updateSpeaker(Long id, MultipartFile image, String imageUrl, String name, String university, String conferencecode) throws IOException {
         Optional<Speaker> opt = speakerRepository.findById(id);
         if (opt.isEmpty()) {
             throw new IOException("Speaker not found with id: " + id);
@@ -113,6 +113,9 @@ public class SpeakerService {
         }
         if (university != null && !university.isBlank()) {
             speaker.setUniversity(university);
+        }
+        if (conferencecode != null && !conferencecode.isBlank()) {
+            speaker.setConferencecode(conferencecode);
         }
 
         // if new image file provided, upload and replace imagePath
@@ -207,5 +210,9 @@ public class SpeakerService {
 
         speakerRepository.delete(speaker);
         return true;
+    }
+
+    public List<Speaker> getSpeakersByConferencecode(String conferencecode) {
+        return speakerRepository.findByConferencecode(conferencecode);
     }
 }

@@ -23,10 +23,11 @@ public class roboticsSponsorController {
     public ResponseEntity<?> uploadSponsor(
             @RequestParam("name") String name,
             @RequestParam("type") String type,
+            @RequestParam("conferencecode") String conferencecode,
             @RequestParam("file") MultipartFile file
     ) {
         try {
-            roboticsSponsor saved = sponsorService.uploadSponsor(name, type, file);
+            roboticsSponsor saved = sponsorService.uploadSponsor(name, type, conferencecode, file);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -40,10 +41,11 @@ public class roboticsSponsorController {
             @PathVariable("id") Long id,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "conferencecode", required = false) String conferencecode,
             @RequestParam(value = "file", required = false) MultipartFile file
     ) {
         try {
-            roboticsSponsor updated = sponsorService.updateSponsor(id, name, type, file);
+            roboticsSponsor updated = sponsorService.updateSponsor(id, name, type, conferencecode, file);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -55,6 +57,11 @@ public class roboticsSponsorController {
     @GetMapping
     public ResponseEntity<?> getAllSponsors() {
         return ResponseEntity.ok(sponsorService.getAllSponsors());
+    }
+
+    @GetMapping("/by-conferencecode/{conferencecode}")
+    public ResponseEntity<?> getSponsorsByConferencecode(@PathVariable("conferencecode") String conferencecode) {
+        return ResponseEntity.ok(sponsorService.getSponsorsByConferencecode(conferencecode));
     }
 
     @GetMapping("/{id}")

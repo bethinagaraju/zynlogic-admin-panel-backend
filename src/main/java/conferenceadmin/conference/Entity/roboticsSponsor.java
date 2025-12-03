@@ -14,14 +14,17 @@ public class roboticsSponsor {
 
     private String type;
 
+    private String conferencecode;
+
     private String imagePath;
 
     public roboticsSponsor() {
     }
 
-    public roboticsSponsor(String name, String type, String imagePath) {
+    public roboticsSponsor(String name, String type, String conferencecode, String imagePath) {
         this.name = name;
         this.type = type;
+        this.conferencecode = conferencecode;
         this.imagePath = imagePath;
     }
 
@@ -47,6 +50,14 @@ public class roboticsSponsor {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getConferencecode() {
+        return conferencecode;
+    }
+
+    public void setConferencecode(String conferencecode) {
+        this.conferencecode = conferencecode;
     }
 
     public String getImagePath() {

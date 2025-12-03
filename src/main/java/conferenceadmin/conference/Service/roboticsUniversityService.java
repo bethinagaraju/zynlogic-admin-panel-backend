@@ -40,7 +40,7 @@ public class roboticsUniversityService {
         this.repository = repository;
     }
 
-    public roboticsUniversity saveUniversity(MultipartFile image, String name) throws IOException {
+    public roboticsUniversity saveUniversity(MultipartFile image, String name, String conferencecode) throws IOException {
         if (image == null || image.isEmpty()) {
             throw new IllegalArgumentException("Image file is required");
         }
@@ -84,7 +84,7 @@ public class roboticsUniversityService {
                 }
             }
 
-            roboticsUniversity uni = new roboticsUniversity(name, imagePath);
+            roboticsUniversity uni = new roboticsUniversity(name, conferencecode, imagePath);
             return repository.save(uni);
         } finally {
             if (ftp.isConnected()) {
@@ -101,11 +101,19 @@ public class roboticsUniversityService {
         return repository.findAll();
     }
 
-    public roboticsUniversity updateUniversity(Long id, String name, org.springframework.web.multipart.MultipartFile image) throws IOException {
+    public List<roboticsUniversity> getUniversitiesByConferencecode(String conferencecode) {
+        return repository.findByConferencecode(conferencecode);
+    }
+
+    public roboticsUniversity updateUniversity(Long id, String name, String conferencecode, org.springframework.web.multipart.MultipartFile image) throws IOException {
         roboticsUniversity uni = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("University not found"));
 
         if (name != null && !name.isBlank()) {
             uni.setName(name);
+        }
+
+        if (conferencecode != null && !conferencecode.isBlank()) {
+            uni.setConferencecode(conferencecode);
         }
 
         if (image != null && !image.isEmpty()) {

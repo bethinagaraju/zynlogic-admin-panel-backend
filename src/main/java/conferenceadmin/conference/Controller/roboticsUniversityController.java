@@ -22,10 +22,11 @@ public class roboticsUniversityController {
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<?> addUniversity(
             @RequestParam("name") String name,
+            @RequestParam("conferencecode") String conferencecode,
             @RequestParam("image") MultipartFile image
     ) {
         try {
-            roboticsUniversity saved = universityService.saveUniversity(image, name);
+            roboticsUniversity saved = universityService.saveUniversity(image, name, conferencecode);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -39,14 +40,20 @@ public class roboticsUniversityController {
         return ResponseEntity.ok(universityService.getAllUniversities());
     }
 
+    @GetMapping("/by-conferencecode/{conferencecode}")
+    public ResponseEntity<?> getUniversitiesByConferencecode(@PathVariable("conferencecode") String conferencecode) {
+        return ResponseEntity.ok(universityService.getUniversitiesByConferencecode(conferencecode));
+    }
+
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<?> updateUniversity(
             @PathVariable("id") Long id,
             @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "conferencecode", required = false) String conferencecode,
             @RequestParam(value = "image", required = false) MultipartFile image
     ) {
         try {
-            roboticsUniversity updated = universityService.updateUniversity(id, name, image);
+            roboticsUniversity updated = universityService.updateUniversity(id, name, conferencecode, image);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
