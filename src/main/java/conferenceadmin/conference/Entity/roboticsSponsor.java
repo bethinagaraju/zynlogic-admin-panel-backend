@@ -3,7 +3,7 @@ package conferenceadmin.conference.Entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "sponsers")
+@Table(name = "robotics_sponsors")
 public class roboticsSponsor {
 
     @Id

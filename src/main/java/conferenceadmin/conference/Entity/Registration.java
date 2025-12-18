@@ -19,6 +19,8 @@ public class Registration {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String conferenceCode;
+
     private String title;
     private String fullName;
     private String phone;
@@ -28,6 +30,7 @@ public class Registration {
     private String registrationType;
     private String presentationType;
     private Integer numberOfNights;
+    private Integer numberOfGuests;
 
     // 🔑 Whop mapping key
     @Column(unique = true)
