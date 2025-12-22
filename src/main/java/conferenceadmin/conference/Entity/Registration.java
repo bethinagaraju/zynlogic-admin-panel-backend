@@ -19,6 +19,8 @@ public class Registration {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String planId;
+
     private String conferenceCode;
 
     private String title;

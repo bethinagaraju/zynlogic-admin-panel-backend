@@ -38,6 +38,57 @@
 
 
 
+// package conferenceadmin.conference.Controller;
+
+// import conferenceadmin.conference.Entity.Registration;
+// import conferenceadmin.conference.Service.RegistrationService;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.http.ResponseEntity;
+// import org.springframework.web.bind.annotation.*;
+
+// import java.net.URLEncoder;
+// import java.nio.charset.StandardCharsets;
+// import java.util.HashMap;
+// import java.util.Map;
+
+// @RestController
+// @RequestMapping("/api/registration")
+// @CrossOrigin("*")
+// public class RegistrationController {
+
+//     @Autowired
+//     private RegistrationService service;
+
+//     @PostMapping("/create")
+//     public ResponseEntity<Map<String, String>> createRegistration(@RequestBody Registration reg) {
+        
+//         // 1. Save user to DB (Status: PENDING)
+//         Registration saved = service.create(reg);
+
+//         // 2. Construct the Direct Checkout URL
+//         // We use the specific URL you provided: plan_HcVxJS4fF80A2
+//         String baseUrl = "https://whop.com/checkout/plan_HcVxJS4fF80A2";
+        
+//         // 3. Append parameters
+//         // 'state_id' allow us to track this specific transaction if needed
+//         // 'email' pre-fills the checkout form for the user
+//         String whopCheckoutUrl = baseUrl 
+//                 + "?state_id=" + saved.getStateId()
+//                 + "&email=" + URLEncoder.encode(saved.getEmail(), StandardCharsets.UTF_8);
+
+//         // 4. Return the URL to the frontend
+//         Map<String, String> response = new HashMap<>();
+//         response.put("message", "Registration initialized");
+//         response.put("stateId", saved.getStateId());
+//         response.put("checkoutUrl", whopCheckoutUrl);
+
+//         return ResponseEntity.ok(response);
+//     }
+// }
+
+
+
+
 package conferenceadmin.conference.Controller;
 
 import conferenceadmin.conference.Entity.Registration;
@@ -62,21 +113,27 @@ public class RegistrationController {
     @PostMapping("/create")
     public ResponseEntity<Map<String, String>> createRegistration(@RequestBody Registration reg) {
         
-        // 1. Save user to DB (Status: PENDING)
+        // 1. Save user to DB
         Registration saved = service.create(reg);
 
-        // 2. Construct the Direct Checkout URL
-        // We use the specific URL you provided: plan_HcVxJS4fF80A2
-        String baseUrl = "https://whop.com/checkout/plan_HcVxJS4fF80A2";
+        // 2. Use the Plan ID sent from the frontend
+        // If frontend didn't send one, fall back to a default or handle error
+        String planId = saved.getPlanId();
         
-        // 3. Append parameters
-        // 'state_id' allow us to track this specific transaction if needed
-        // 'email' pre-fills the checkout form for the user
+        // if (planId == null || planId.isEmpty()) {
+        //     // Optional: Default Plan ID if none provided
+        //     planId = "plan_HcVxJS4fF80A2"; 
+        // }
+
+        // 3. Construct the Dynamic Checkout URL
+        String baseUrl = "https://whop.com/checkout/" + planId;
+        
+        // 4. Append parameters
         String whopCheckoutUrl = baseUrl 
                 + "?state_id=" + saved.getStateId()
                 + "&email=" + URLEncoder.encode(saved.getEmail(), StandardCharsets.UTF_8);
 
-        // 4. Return the URL to the frontend
+        // 5. Return Response
         Map<String, String> response = new HashMap<>();
         response.put("message", "Registration initialized");
         response.put("stateId", saved.getStateId());
