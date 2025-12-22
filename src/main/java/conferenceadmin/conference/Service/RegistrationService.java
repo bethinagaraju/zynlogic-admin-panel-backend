@@ -93,6 +93,8 @@ import conferenceadmin.conference.Repository.RegistrationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -103,9 +105,40 @@ public class RegistrationService {
 
     // Create registration
     public Registration create(Registration r) {
-        r.setStateId(UUID.randomUUID().toString());
-        r.setPaymentStatus("PENDING");
-        return repo.save(r);
+        // Check if registration with this email already exists
+        Optional<Registration> existing = repo.findByEmail(r.getEmail());
+        if (existing.isPresent()) {
+            Registration existingReg = existing.get();
+            if ("COMPLETED".equals(existingReg.getPaymentStatus())) {
+                // User already registered and paid, throw exception
+                throw new RuntimeException("User already registered with this email");
+            } else {
+                // Update existing registration with new data, keep stateId
+                existingReg.setPlanId(r.getPlanId());
+                existingReg.setConferenceCode(r.getConferenceCode());
+                existingReg.setTitle(r.getTitle());
+                existingReg.setFullName(r.getFullName());
+                existingReg.setPhone(r.getPhone());
+                existingReg.setInstitute(r.getInstitute());
+                existingReg.setCountry(r.getCountry());
+                existingReg.setRegistrationType(r.getRegistrationType());
+                existingReg.setPresentationType(r.getPresentationType());
+                existingReg.setNumberOfNights(r.getNumberOfNights());
+                existingReg.setNumberOfGuests(r.getNumberOfGuests());
+                existingReg.setPaymentStatus("PENDING"); // Reset to pending for new attempt
+                return repo.save(existingReg);
+            }
+        } else {
+            // New registration
+            r.setStateId(UUID.randomUUID().toString());
+            r.setPaymentStatus("PENDING");
+            return repo.save(r);
+        }
+    }
+
+    // Get all registrations
+    public List<Registration> getAllRegistrations() {
+        return repo.findAll();
     }
 
     // ✅ THIS IS THE MISSING METHOD CAUSING THE ERROR

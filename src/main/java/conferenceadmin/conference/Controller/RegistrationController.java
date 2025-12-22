@@ -100,6 +100,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -113,32 +114,44 @@ public class RegistrationController {
     @PostMapping("/create")
     public ResponseEntity<Map<String, String>> createRegistration(@RequestBody Registration reg) {
         
-        // 1. Save user to DB
-        Registration saved = service.create(reg);
+        try {
+            // 1. Save user to DB
+            Registration saved = service.create(reg);
 
-        // 2. Use the Plan ID sent from the frontend
-        // If frontend didn't send one, fall back to a default or handle error
-        String planId = saved.getPlanId();
-        
-        // if (planId == null || planId.isEmpty()) {
-        //     // Optional: Default Plan ID if none provided
-        //     planId = "plan_HcVxJS4fF80A2"; 
-        // }
+            // 2. Use the Plan ID sent from the frontend
+            // If frontend didn't send one, fall back to a default or handle error
+            String planId = saved.getPlanId();
+            
+            // if (planId == null || planId.isEmpty()) {
+            //     // Optional: Default Plan ID if none provided
+            //     planId = "plan_HcVxJS4fF80A2"; 
+            // }
 
-        // 3. Construct the Dynamic Checkout URL
-        String baseUrl = "https://whop.com/checkout/" + planId;
-        
-        // 4. Append parameters
-        String whopCheckoutUrl = baseUrl 
-                + "?state_id=" + saved.getStateId()
-                + "&email=" + URLEncoder.encode(saved.getEmail(), StandardCharsets.UTF_8);
+            // 3. Construct the Dynamic Checkout URL
+            String baseUrl = "https://whop.com/checkout/" + planId;
+            
+            // 4. Append parameters
+            String whopCheckoutUrl = baseUrl 
+                    + "?state_id=" + saved.getStateId()
+                    + "&email=" + URLEncoder.encode(saved.getEmail(), StandardCharsets.UTF_8);
 
-        // 5. Return Response
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Registration initialized");
-        response.put("stateId", saved.getStateId());
-        response.put("checkoutUrl", whopCheckoutUrl);
+            // 5. Return Response
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Registration initialized");
+            response.put("stateId", saved.getStateId());
+            response.put("checkoutUrl", whopCheckoutUrl);
 
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Registration>> getAllRegistrations() {
+        List<Registration> registrations = service.getAllRegistrations();
+        return ResponseEntity.ok(registrations);
     }
 }
