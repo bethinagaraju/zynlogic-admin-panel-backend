@@ -141,6 +141,11 @@ public class RegistrationService {
         return repo.findAll();
     }
 
+    // Get payment status by email
+    public Optional<String> getPaymentStatusByEmail(String email) {
+        return repo.findByEmail(email).map(Registration::getPaymentStatus);
+    }
+
     // ✅ THIS IS THE MISSING METHOD CAUSING THE ERROR
     public boolean updateStatusByEmail(String email, String status) {
         return repo.findByEmail(email).map(reg -> {

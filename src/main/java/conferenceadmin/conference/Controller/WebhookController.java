@@ -293,7 +293,8 @@ public class WebhookController {
     private RegistrationService service;
 
     // Your actual secret from Whop settings
-    private final String WEBHOOK_SECRET = "ws_11e19a31112a0fd80c1fa99f894e873d1afbbb9495a1ca6d753c784a3317354d";
+    // private final String WEBHOOK_SECRET = "ws_11e19a31112a0fd80c1fa99f894e873d1afbbb9495a1ca6d753c784a3317354d";
+    private final String WEBHOOK_SECRET = "ws_f4b846e19cfd03a1846b86a25e5de67ceed78acdec203b3f535e807ce8a049c8";
 
     @PostMapping("/whop")
     public ResponseEntity<String> handleWhopWebhook(@RequestBody String rawPayload) {

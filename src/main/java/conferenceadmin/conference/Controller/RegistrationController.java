@@ -102,6 +102,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/registration")
@@ -153,5 +154,20 @@ public class RegistrationController {
     public ResponseEntity<List<Registration>> getAllRegistrations() {
         List<Registration> registrations = service.getAllRegistrations();
         return ResponseEntity.ok(registrations);
+    }
+
+    @GetMapping("/status/{email}")
+    public ResponseEntity<Map<String, Object>> getPaymentStatusByEmail(@PathVariable String email) {
+        Optional<String> paymentStatus = service.getPaymentStatusByEmail(email);
+        
+        Map<String, Object> response = new HashMap<>();
+        if (paymentStatus.isPresent()) {
+            response.put("email", email);
+            response.put("paymentStatus", paymentStatus.get());
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("error", "No registration found for email: " + email);
+            return ResponseEntity.notFound().build();
+        }
     }
 }
