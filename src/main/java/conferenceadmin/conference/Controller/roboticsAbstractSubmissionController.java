@@ -44,4 +44,10 @@ public class roboticsAbstractSubmissionController {
     public ResponseEntity<?> getAbstractSubmissionsByConferencecode(@PathVariable("conferencecode") String conferencecode) {
         return ResponseEntity.ok(submissionService.getAbstractSubmissionsByConferencecode(conferencecode));
     }
+
+    @GetMapping
+    public ResponseEntity<?> getAllAbstractSubmissions() {
+        return ResponseEntity.ok(submissionService.getAllAbstractSubmissions());
+    }
+
 }

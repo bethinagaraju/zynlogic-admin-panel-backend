@@ -31,10 +31,11 @@ public class SpeakerController {
             @RequestParam("image") MultipartFile image,
             @RequestParam("name") String name,
             @RequestParam("university") String university,
-            @RequestParam("conferencecode") String conferencecode
+            @RequestParam("conferencecode") String conferencecode,
+            @RequestParam("speakerType") String speakerType
     ) {
         try {
-            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode);
+            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode, speakerType);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save speaker: " + e.getMessage());
@@ -54,11 +55,12 @@ public class SpeakerController {
             @RequestParam(value = "imageUrl", required = false) String imageUrl,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "university", required = false) String university,
-            @RequestParam(value = "conferencecode", required = false) String conferencecode
+            @RequestParam(value = "conferencecode", required = false) String conferencecode,
+            @RequestParam(value = "speakerType", required = false) String speakerType
     ) {
         try {
             // uploaded file takes precedence over provided URL
-            Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university, conferencecode);
+            Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university, conferencecode, speakerType);
             return ResponseEntity.ok(updated);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update speaker: " + e.getMessage());

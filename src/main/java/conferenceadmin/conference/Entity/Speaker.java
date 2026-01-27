@@ -18,14 +18,17 @@ public class Speaker {
 
     private String imagePath;
 
+    private String speakerType;
+
     public Speaker() {
     }
 
-    public Speaker(String name, String university, String conferencecode, String imagePath) {
+    public Speaker(String name, String university, String conferencecode, String imagePath, String speakerType) {
         this.name = name;
         this.university = university;
         this.conferencecode = conferencecode;
         this.imagePath = imagePath;
+        this.speakerType = speakerType;
     }
 
     public Long getId() {
@@ -66,5 +69,13 @@ public class Speaker {
 
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
+    }
+
+    public String getSpeakerType() {
+        return speakerType;
+    }
+
+    public void setSpeakerType(String speakerType) {
+        this.speakerType = speakerType;
     }
 }

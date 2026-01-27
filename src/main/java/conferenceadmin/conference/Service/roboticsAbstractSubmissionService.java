@@ -100,4 +100,8 @@ public class roboticsAbstractSubmissionService {
     public List<roboticsAbstractSubmission> getAbstractSubmissionsByConferencecode(String conferencecode) {
         return repository.findByConferencecode(conferencecode);
     }
+
+    public List<roboticsAbstractSubmission> getAllAbstractSubmissions() {
+        return repository.findAll();
+    }
 }

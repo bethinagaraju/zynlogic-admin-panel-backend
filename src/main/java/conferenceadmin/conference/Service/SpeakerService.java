@@ -43,7 +43,7 @@ public class SpeakerService {
         this.speakerRepository = speakerRepository;
     }
 
-    public Speaker saveSpeaker(MultipartFile image, String name, String university, String conferencecode) throws IOException {
+    public Speaker saveSpeaker(MultipartFile image, String name, String university, String conferencecode, String speakerType) throws IOException {
         String original = Objects.requireNonNull(image.getOriginalFilename());
         String filename = System.currentTimeMillis() + "_" + original.replaceAll("[^a-zA-Z0-9._-]", "_");
 
@@ -88,7 +88,7 @@ public class SpeakerService {
         }
         imagePath += filename;
 
-        Speaker speaker = new Speaker(name, university, conferencecode, imagePath);
+        Speaker speaker = new Speaker(name, university, conferencecode, imagePath, speakerType);
         return speakerRepository.save(speaker);
     }
 
@@ -100,7 +100,7 @@ public class SpeakerService {
         return speakerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Speaker not found"));
     }
 
-    public Speaker updateSpeaker(Long id, MultipartFile image, String imageUrl, String name, String university, String conferencecode) throws IOException {
+    public Speaker updateSpeaker(Long id, MultipartFile image, String imageUrl, String name, String university, String conferencecode, String speakerType) throws IOException {
         Optional<Speaker> opt = speakerRepository.findById(id);
         if (opt.isEmpty()) {
             throw new IOException("Speaker not found with id: " + id);
@@ -116,6 +116,9 @@ public class SpeakerService {
         }
         if (conferencecode != null && !conferencecode.isBlank()) {
             speaker.setConferencecode(conferencecode);
+        }
+        if (speakerType != null && !speakerType.isBlank()) {
+            speaker.setSpeakerType(speakerType);
         }
 
         // if new image file provided, upload and replace imagePath

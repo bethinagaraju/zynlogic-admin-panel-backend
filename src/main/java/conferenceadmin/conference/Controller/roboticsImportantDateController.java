@@ -17,9 +17,9 @@ public class roboticsImportantDateController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addImportantDate(@RequestParam("date") String date, @RequestParam("conferencecode") String conferencecode) {
+    public ResponseEntity<?> addImportantDate(@RequestParam("date") String date, @RequestParam("conferencecode") String conferencecode, @RequestParam("dateType") String dateType) {
         try {
-            roboticsImportantDate saved = dateService.saveImportantDate(date, conferencecode);
+            roboticsImportantDate saved = dateService.saveImportantDate(date, conferencecode, dateType);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -47,9 +47,9 @@ public class roboticsImportantDateController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateImportantDate(@PathVariable("id") Long id, @RequestParam("date") String date, @RequestParam(value = "conferencecode", required = false) String conferencecode) {
+    public ResponseEntity<?> updateImportantDate(@PathVariable("id") Long id, @RequestParam("date") String date, @RequestParam(value = "conferencecode", required = false) String conferencecode, @RequestParam(value = "dateType", required = false) String dateType) {
         try {
-            roboticsImportantDate updated = dateService.updateImportantDate(id, date, conferencecode);
+            roboticsImportantDate updated = dateService.updateImportantDate(id, date, conferencecode, dateType);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

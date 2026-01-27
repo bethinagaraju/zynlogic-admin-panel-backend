@@ -1,6 +1,7 @@
 package conferenceadmin.conference.Entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "abstract_submissions")
@@ -26,6 +27,8 @@ public class roboticsAbstractSubmission {
 
     private String abstractFilePath;
 
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     public roboticsAbstractSubmission() {
     }
 
@@ -38,6 +41,7 @@ public class roboticsAbstractSubmission {
         this.organization = organization;
         this.country = country;
         this.abstractFilePath = abstractFilePath;
+        this.createdAt = LocalDateTime.now();
     }
 
     // Getters and setters
@@ -111,5 +115,13 @@ public class roboticsAbstractSubmission {
 
     public void setAbstractFilePath(String abstractFilePath) {
         this.abstractFilePath = abstractFilePath;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

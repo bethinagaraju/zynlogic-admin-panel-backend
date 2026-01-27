@@ -15,12 +15,15 @@ public class roboticsImportantDate {
 
     private String conferencecode;
 
+    private String dateType;
+
     public roboticsImportantDate() {
     }
 
-    public roboticsImportantDate(String date, String conferencecode) {
+    public roboticsImportantDate(String date, String conferencecode, String dateType) {
         this.date = date;
         this.conferencecode = conferencecode;
+        this.dateType = dateType;
     }
 
     public Long getId() {
@@ -45,5 +48,13 @@ public class roboticsImportantDate {
 
     public void setConferencecode(String conferencecode) {
         this.conferencecode = conferencecode;
+    }
+
+    public String getDateType() {
+        return dateType;
+    }
+
+    public void setDateType(String dateType) {
+        this.dateType = dateType;
     }
 }

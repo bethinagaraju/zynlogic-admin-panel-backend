@@ -15,11 +15,11 @@ public class roboticsImportantDateService {
         this.repository = repository;
     }
 
-    public roboticsImportantDate saveImportantDate(String date, String conferencecode) {
+    public roboticsImportantDate saveImportantDate(String date, String conferencecode, String dateType) {
         if (date == null || date.isBlank()) {
             throw new IllegalArgumentException("Date is required");
         }
-        roboticsImportantDate d = new roboticsImportantDate(date, conferencecode);
+        roboticsImportantDate d = new roboticsImportantDate(date, conferencecode, dateType);
         return repository.save(d);
     }
 
@@ -31,7 +31,7 @@ public class roboticsImportantDateService {
         return repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Important date not found"));
     }
 
-    public roboticsImportantDate updateImportantDate(Long id, String date, String conferencecode) {
+    public roboticsImportantDate updateImportantDate(Long id, String date, String conferencecode, String dateType) {
         roboticsImportantDate existing = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Important date not found"));
         if (date == null || date.isBlank()) {
             throw new IllegalArgumentException("Date is required");
@@ -39,6 +39,9 @@ public class roboticsImportantDateService {
         existing.setDate(date);
         if (conferencecode != null && !conferencecode.isBlank()) {
             existing.setConferencecode(conferencecode);
+        }
+        if (dateType != null && !dateType.isBlank()) {
+            existing.setDateType(dateType);
         }
         return repository.save(existing);
     }
