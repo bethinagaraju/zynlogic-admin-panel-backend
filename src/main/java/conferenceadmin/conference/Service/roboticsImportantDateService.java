@@ -49,4 +49,11 @@ public class roboticsImportantDateService {
     public List<roboticsImportantDate> getImportantDatesByConferencecode(String conferencecode) {
         return repository.findByConferencecode(conferencecode);
     }
+
+    public void deleteImportantDate(Long id) {
+        if (!repository.existsById(id)) {
+            throw new IllegalArgumentException("Important date not found");
+        }
+        repository.deleteById(id);
+    }
 }
