@@ -88,7 +88,7 @@ public class SpeakerService {
         }
         imagePath += filename;
 
-        Speaker speaker = new Speaker(name, university, conferencecode, imagePath, speakerType);
+        Speaker speaker = new Speaker(name, university, conferencecode, imagePath, speakerType, getNextOrderIndex(conferencecode));
         return speakerRepository.save(speaker);
     }
 
@@ -216,6 +216,23 @@ public class SpeakerService {
     }
 
     public List<Speaker> getSpeakersByConferencecode(String conferencecode) {
-        return speakerRepository.findByConferencecode(conferencecode);
+        return speakerRepository.findByConferencecodeOrderByOrderIndex(conferencecode);
+    }
+
+    private Integer getNextOrderIndex(String conferencecode) {
+        List<Speaker> existing = speakerRepository.findByConferencecodeOrderByOrderIndex(conferencecode);
+        return existing.isEmpty() ? 1 : existing.get(existing.size() - 1).getOrderIndex() + 1;
+    }
+
+    public void reorderSpeakers(List<Long> speakerIdsInOrder) {
+        for (int i = 0; i < speakerIdsInOrder.size(); i++) {
+            Long id = speakerIdsInOrder.get(i);
+            Optional<Speaker> opt = speakerRepository.findById(id);
+            if (opt.isPresent()) {
+                Speaker s = opt.get();
+                s.setOrderIndex(i + 1);
+                speakerRepository.save(s);
+            }
+        }
     }
 }

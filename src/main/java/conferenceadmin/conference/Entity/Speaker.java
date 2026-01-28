@@ -20,15 +20,19 @@ public class Speaker {
 
     private String speakerType;
 
+    @Column(nullable = false)
+    private Integer orderIndex;
+
     public Speaker() {
     }
 
-    public Speaker(String name, String university, String conferencecode, String imagePath, String speakerType) {
+    public Speaker(String name, String university, String conferencecode, String imagePath, String speakerType, Integer orderIndex) {
         this.name = name;
         this.university = university;
         this.conferencecode = conferencecode;
         this.imagePath = imagePath;
         this.speakerType = speakerType;
+        this.orderIndex = orderIndex;
     }
 
     public Long getId() {
@@ -77,5 +81,13 @@ public class Speaker {
 
     public void setSpeakerType(String speakerType) {
         this.speakerType = speakerType;
+    }
+
+    public Integer getOrderIndex() {
+        return orderIndex;
+    }
+
+    public void setOrderIndex(Integer orderIndex) {
+        this.orderIndex = orderIndex;
     }
 }

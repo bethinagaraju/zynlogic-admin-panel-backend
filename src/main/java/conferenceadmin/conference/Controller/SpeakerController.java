@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -90,5 +91,15 @@ public class SpeakerController {
     public ResponseEntity<java.util.List<Speaker>> getSpeakersByConferencecode(@PathVariable String conferencecode) {
         java.util.List<Speaker> list = speakerService.getSpeakersByConferencecode(conferencecode);
         return ResponseEntity.ok(list);
+    }
+
+    @PutMapping("/reorder")
+    public ResponseEntity<?> reorderSpeakers(@RequestBody java.util.List<Long> speakerIdsInOrder) {
+        try {
+            speakerService.reorderSpeakers(speakerIdsInOrder);
+            return ResponseEntity.ok("Speakers reordered successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to reorder speakers: " + e.getMessage());
+        }
     }
 }
