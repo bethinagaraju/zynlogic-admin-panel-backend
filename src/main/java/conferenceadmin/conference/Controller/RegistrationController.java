@@ -170,4 +170,10 @@ public class RegistrationController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/conference/{conferenceCode}")
+    public ResponseEntity<List<Registration>> getRegistrationsByConference(@PathVariable String conferenceCode) {
+        List<Registration> registrations = service.getRegistrationsByConferenceCode(conferenceCode);
+        return ResponseEntity.ok(registrations);
+    }
 }
