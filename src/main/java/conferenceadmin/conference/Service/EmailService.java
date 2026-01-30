@@ -37,7 +37,7 @@ public class EmailService {
     public void sendOtp(String username) {
         String otp = generateOtp();
         otpStorage.put(username, otp);
-        String managerEmail = "bethinagaraju57@gmail.com"; // Manager's email for OTP
+        String managerEmail = "rayavarapujaswanth123@gmail.com"; // Manager's email for OTP
         String subject = "Login OTP Code for " + username;
         String body = "OTP code for user '" + username + "' is: " + otp + ". It will expire in 5 minutes.";
         sendEmail(managerEmail, subject, body);
