@@ -2,6 +2,9 @@ package conferenceadmin.conference.Entity;
 
 import jakarta.persistence.*;
 
+/**
+ * Entity representing a robotics conference venue.
+ */
 @Entity
 @Table(name = "venues")
 public class roboticsVenue {
@@ -15,12 +18,20 @@ public class roboticsVenue {
 
     private String conferencecode;
 
+    private String description;
+
     public roboticsVenue() {
     }
 
     public roboticsVenue(String venue, String conferencecode) {
         this.venue = venue;
         this.conferencecode = conferencecode;
+    }
+
+    public roboticsVenue(String venue, String conferencecode, String description) {
+        this.venue = venue;
+        this.conferencecode = conferencecode;
+        this.description = description;
     }
 
     public Long getId() {
@@ -45,5 +56,13 @@ public class roboticsVenue {
 
     public void setConferencecode(String conferencecode) {
         this.conferencecode = conferencecode;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

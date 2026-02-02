@@ -21,6 +21,11 @@ public class roboticsVenueService {
         return repository.save(v);
     }
 
+    public roboticsVenue saveVenue(String venue, String conferencecode, String description) {
+        roboticsVenue v = new roboticsVenue(venue, conferencecode, description);
+        return repository.save(v);
+    }
+
     public roboticsVenue updateVenue(Long id, String venue, String conferencecode) {
         Optional<roboticsVenue> opt = repository.findById(id);
         if (opt.isEmpty()) {
@@ -32,6 +37,24 @@ public class roboticsVenueService {
         }
         if (conferencecode != null && !conferencecode.isBlank()) {
             v.setConferencecode(conferencecode);
+        }
+        return repository.save(v);
+    }
+
+    public roboticsVenue updateVenue(Long id, String venue, String conferencecode, String description) {
+        Optional<roboticsVenue> opt = repository.findById(id);
+        if (opt.isEmpty()) {
+            throw new IllegalArgumentException("Venue not found");
+        }
+        roboticsVenue v = opt.get();
+        if (venue != null && !venue.isBlank()) {
+            v.setVenue(venue);
+        }
+        if (conferencecode != null && !conferencecode.isBlank()) {
+            v.setConferencecode(conferencecode);
+        }
+        if (description != null) {
+            v.setDescription(description);
         }
         return repository.save(v);
     }

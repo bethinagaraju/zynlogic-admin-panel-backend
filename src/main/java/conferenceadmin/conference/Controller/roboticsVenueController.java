@@ -21,11 +21,11 @@ public class roboticsVenueController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addVenue(@RequestParam("venue") String venue, @RequestParam("conferencecode") String conferencecode, @RequestParam("username") String username, HttpServletRequest request) {
+    public ResponseEntity<?> addVenue(@RequestParam("venue") String venue, @RequestParam("conferencecode") String conferencecode, @RequestParam(value = "description", required = false) String description, @RequestParam("username") String username, HttpServletRequest request) {
         try {
-            roboticsVenue saved = venueService.saveVenue(venue, conferencecode);
-            String newValues = String.format("Venue: %s, Conference: %s",
-                                           venue, conferencecode);
+            roboticsVenue saved = venueService.saveVenue(venue, conferencecode, description);
+            String newValues = String.format("Venue: %s, Conference: %s, Description: %s",
+                                           venue, conferencecode, description != null ? description : "N/A");
             auditService.logCreate(username, "RoboticsVenue", saved.getId().toString(), venue, newValues, request, conferencecode);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IllegalArgumentException e) {
@@ -34,21 +34,21 @@ public class roboticsVenueController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateVenue(@PathVariable("id") Long id, @RequestParam(value = "venue", required = false) String venue, @RequestParam(value = "conferencecode", required = false) String conferencecode, @RequestParam("username") String username, HttpServletRequest request) {
+    public ResponseEntity<?> updateVenue(@PathVariable("id") Long id, @RequestParam(value = "venue", required = false) String venue, @RequestParam(value = "conferencecode", required = false) String conferencecode, @RequestParam(value = "description", required = false) String description, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             // Get the venue before update for comparison
             roboticsVenue existingVenue = venueService.getVenueById(id);
 
             // Update the venue
-            roboticsVenue updated = venueService.updateVenue(id, venue, conferencecode);
+            roboticsVenue updated = venueService.updateVenue(id, venue, conferencecode, description);
 
             // Always log the update attempt with details of what was requested to change
-            String requestedChanges = buildRequestedChangesString(venue, conferencecode);
+            String requestedChanges = buildRequestedChangesString(venue, conferencecode, description);
             String currentValues = buildCurrentValuesString(existingVenue);
             String updatedValues = buildUpdatedValuesString(updated);
 
             // Detect actual changes by comparing what was requested vs what actually changed
-            String actualChanges = buildActualChangesDescription(existingVenue, updated, venue, conferencecode);
+            String actualChanges = buildActualChangesDescription(existingVenue, updated, venue, conferencecode, description);
 
             auditService.logUpdate(username, "RoboticsVenue", id.toString(), updated.getVenue(),
                                  actualChanges,
@@ -93,7 +93,7 @@ public class roboticsVenueController {
         }
     }
 
-    private String buildRequestedChangesString(String venue, String conferencecode) {
+    private String buildRequestedChangesString(String venue, String conferencecode, String description) {
         StringBuilder requested = new StringBuilder("Update requested for: ");
         boolean hasChanges = false;
 
@@ -104,6 +104,11 @@ public class roboticsVenueController {
         if (conferencecode != null) {
             if (hasChanges) requested.append(", ");
             requested.append("Conference Code");
+            hasChanges = true;
+        }
+        if (description != null) {
+            if (hasChanges) requested.append(", ");
+            requested.append("Description");
             hasChanges = true;
         }
 
@@ -127,7 +132,7 @@ public class roboticsVenueController {
         return hasChanges ? actual.toString() : "No actual changes made - values were already up to date";
     }
 
-    private String buildActualChangesDescription(roboticsVenue existing, roboticsVenue updated, String requestedVenue, String requestedConferencecode) {
+    private String buildActualChangesDescription(roboticsVenue existing, roboticsVenue updated, String requestedVenue, String requestedConferencecode, String requestedDescription) {
         StringBuilder description = new StringBuilder();
         boolean hasRequests = false;
 
@@ -152,16 +157,29 @@ public class roboticsVenueController {
             }
         }
 
+        // Check description
+        if (requestedDescription != null) {
+            if (hasRequests) description.append("; ");
+            hasRequests = true;
+            String existingDesc = existing.getDescription() != null ? existing.getDescription() : "";
+            String updatedDesc = updated.getDescription() != null ? updated.getDescription() : "";
+            if (!existingDesc.equals(updatedDesc)) {
+                description.append("Description changed from '").append(existingDesc).append("' to '").append(updatedDesc).append("'");
+            } else {
+                description.append("Description updated to '").append(requestedDescription).append("' ");
+            }
+        }
+
         return hasRequests ? description.toString() : "Update requested - no specific fields provided";
     }
 
     private String buildCurrentValuesString(roboticsVenue venue) {
-        return String.format("Venue: %s, Conference: %s",
-                           venue.getVenue(), venue.getConferencecode());
+        return String.format("Venue: %s, Conference: %s, Description: %s",
+                           venue.getVenue(), venue.getConferencecode(), venue.getDescription() != null ? venue.getDescription() : "N/A");
     }
 
     private String buildUpdatedValuesString(roboticsVenue venue) {
-        return String.format("Venue: %s, Conference: %s",
-                           venue.getVenue(), venue.getConferencecode());
+        return String.format("Venue: %s, Conference: %s, Description: %s",
+                           venue.getVenue(), venue.getConferencecode(), venue.getDescription() != null ? venue.getDescription() : "N/A");
     }
 }
