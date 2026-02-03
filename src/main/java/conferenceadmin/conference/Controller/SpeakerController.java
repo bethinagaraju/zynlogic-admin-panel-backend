@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class SpeakerController {
     }
 
     @PostMapping("/robotics")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> uploadSpeaker(
             @RequestParam("image") MultipartFile image,
             @RequestParam("name") String name,
@@ -59,6 +61,7 @@ public class SpeakerController {
     }
 
     @PutMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateSpeaker(
             @PathVariable("id") Long id,
             @RequestParam(value = "image", required = false) MultipartFile image,
@@ -97,6 +100,7 @@ public class SpeakerController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteSpeaker(@PathVariable("id") Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             Speaker speaker = speakerService.getSpeakerById(id);
@@ -128,6 +132,7 @@ public class SpeakerController {
     }
 
     @PutMapping("/reorder")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> reorderSpeakers(@RequestBody java.util.List<Long> speakerIdsInOrder) {
         try {
             speakerService.reorderSpeakers(speakerIdsInOrder);

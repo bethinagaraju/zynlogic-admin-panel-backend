@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class TestimonialsController {
     }
 
     @PostMapping(consumes = {"multipart/form-data"})
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> addTestimonial(
             @RequestParam("name") String name,
             @RequestParam("university") String university,
@@ -47,6 +49,7 @@ public class TestimonialsController {
     }
 
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateTestimonial(
             @PathVariable("id") Long id,
             @RequestParam(value = "name", required = false) String name,
@@ -106,6 +109,7 @@ public class TestimonialsController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteTestimonial(@PathVariable("id") Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             Testimonials testimonial = testimonialsService.getTestimonialById(id);

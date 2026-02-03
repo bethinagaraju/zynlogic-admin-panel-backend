@@ -6,6 +6,7 @@ import conferenceadmin.conference.Service.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class CommitteeController {
     }
 
     @PostMapping
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> addCommittee(
             @RequestParam("conferencecode") String conferencecode,
             @RequestParam("name") String name,
@@ -41,6 +43,7 @@ public class CommitteeController {
     }
 
     @PutMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateCommittee(
             @PathVariable("id") Long id,
             @RequestParam(value = "conferencecode", required = false) String conferencecode,
@@ -95,6 +98,7 @@ public class CommitteeController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteCommittee(@PathVariable("id") Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             Committee committee = committeeService.getCommitteeById(id);
@@ -107,6 +111,7 @@ public class CommitteeController {
     }
 
     @PutMapping("/reorder")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> reorderCommittees(@RequestBody List<Long> committeeIdsInOrder) {
         try {
             committeeService.reorderCommittees(committeeIdsInOrder);

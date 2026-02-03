@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class roboticsSponsorController {
     }
 
     @PostMapping(consumes = {"multipart/form-data"})
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> uploadSponsor(
             @RequestParam("name") String name,
             @RequestParam("type") String type,
@@ -46,6 +48,7 @@ public class roboticsSponsorController {
     }
 
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateSponsor(
             @PathVariable("id") Long id,
             @RequestParam(value = "name", required = false) String name,
@@ -104,6 +107,7 @@ public class roboticsSponsorController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteSponsor(@PathVariable("id") Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             roboticsSponsor sponsor = sponsorService.getSponsorById(id);

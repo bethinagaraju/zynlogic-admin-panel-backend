@@ -6,6 +6,7 @@ import conferenceadmin.conference.Service.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +22,7 @@ public class roboticsVenueController {
     }
 
     @PostMapping
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> addVenue(@RequestParam("venue") String venue, @RequestParam("conferencecode") String conferencecode, @RequestParam(value = "description", required = false) String description, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             roboticsVenue saved = venueService.saveVenue(venue, conferencecode, description);
@@ -34,6 +36,7 @@ public class roboticsVenueController {
     }
 
     @PutMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateVenue(@PathVariable("id") Long id, @RequestParam(value = "venue", required = false) String venue, @RequestParam(value = "conferencecode", required = false) String conferencecode, @RequestParam(value = "description", required = false) String description, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             // Get the venue before update for comparison
@@ -82,6 +85,7 @@ public class roboticsVenueController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteVenue(@PathVariable("id") Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             roboticsVenue venue = venueService.getVenueById(id);

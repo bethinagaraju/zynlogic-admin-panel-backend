@@ -3,14 +3,23 @@ package conferenceadmin.conference.Controller;
 import conferenceadmin.conference.Entity.Admin;
 import conferenceadmin.conference.Service.AdminService;
 import conferenceadmin.conference.Service.EmailService;
+import conferenceadmin.conference.Service.SpeakerService;
+import conferenceadmin.conference.Service.TestimonialsService;
+import conferenceadmin.conference.Service.roboticsVenueService;
+import conferenceadmin.conference.Service.roboticsSponsorService;
+import conferenceadmin.conference.Service.roboticsTopicService;
+import conferenceadmin.conference.Service.AgendaService;
+import conferenceadmin.conference.Service.CommitteeService;
+import conferenceadmin.conference.Service.roboticsImportantDateService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -18,10 +27,26 @@ public class AdminController {
 
     private final AdminService adminService;
     private final EmailService emailService;
+    private final SpeakerService speakerService;
+    private final TestimonialsService testimonialsService;
+    private final roboticsVenueService roboticsVenueService;
+    private final roboticsSponsorService roboticsSponsorService;
+    private final roboticsTopicService roboticsTopicService;
+    private final AgendaService agendaService;
+    private final CommitteeService committeeService;
+    private final roboticsImportantDateService roboticsImportantDateService;
 
-    public AdminController(AdminService adminService, EmailService emailService) {
+    public AdminController(AdminService adminService, EmailService emailService, SpeakerService speakerService, TestimonialsService testimonialsService, roboticsVenueService roboticsVenueService, roboticsSponsorService roboticsSponsorService, roboticsTopicService roboticsTopicService, AgendaService agendaService, CommitteeService committeeService, roboticsImportantDateService roboticsImportantDateService) {
         this.adminService = adminService;
         this.emailService = emailService;
+        this.speakerService = speakerService;
+        this.testimonialsService = testimonialsService;
+        this.roboticsVenueService = roboticsVenueService;
+        this.roboticsSponsorService = roboticsSponsorService;
+        this.roboticsTopicService = roboticsTopicService;
+        this.agendaService = agendaService;
+        this.committeeService = committeeService;
+        this.roboticsImportantDateService = roboticsImportantDateService;
     }
 
     @PostMapping("/register")
@@ -113,5 +138,20 @@ public class AdminController {
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to change password");
         }
+    }
+
+    @GetMapping("/conference-data/{conferencecode}")
+    @Cacheable(value = "conferenceData", key = "#conferencecode")
+    public ResponseEntity<Map<String, Object>> getConferenceData(@PathVariable String conferencecode) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("speakers", speakerService.getSpeakersByConferencecode(conferencecode));
+        data.put("testimonials", testimonialsService.getTestimonialsByConferencecode(conferencecode));
+        data.put("venues", roboticsVenueService.getVenuesByConferencecode(conferencecode));
+        data.put("sponsors", roboticsSponsorService.getSponsorsByConferencecode(conferencecode));
+        data.put("topics", roboticsTopicService.getTopicsByConferencecode(conferencecode));
+        data.put("agenda", agendaService.getAgendasByConferencecode(conferencecode));
+        data.put("committee", committeeService.getCommitteesByConferencecode(conferencecode));
+        data.put("importantDates", roboticsImportantDateService.getImportantDatesByConferencecode(conferencecode));
+        return ResponseEntity.ok(data);
     }
 }

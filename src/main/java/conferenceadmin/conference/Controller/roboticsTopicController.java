@@ -6,6 +6,7 @@ import conferenceadmin.conference.Service.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class roboticsTopicController {
     }
 
     @PostMapping
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> addTopic(@RequestParam("topicName") String topicName, @RequestParam("conferencecode") String conferencecode, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             roboticsTopic saved = topicService.saveTopic(topicName, conferencecode);
@@ -36,6 +38,7 @@ public class roboticsTopicController {
     }
 
     @PutMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateTopic(@PathVariable("id") Long id, @RequestParam(value = "topicName", required = false) String topicName, @RequestParam(value = "conferencecode", required = false) String conferencecode, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             // Get the topic before update for comparison
@@ -84,6 +87,7 @@ public class roboticsTopicController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteTopic(@PathVariable("id") Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             roboticsTopic topic = topicService.getTopicById(id);
@@ -96,6 +100,7 @@ public class roboticsTopicController {
     }
 
     @PutMapping("/reorder")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> reorderTopics(@RequestBody List<Long> topicIdsInOrder) {
         try {
             topicService.reorderTopics(topicIdsInOrder);

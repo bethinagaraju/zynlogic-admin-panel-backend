@@ -6,6 +6,7 @@ import conferenceadmin.conference.Service.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +22,7 @@ public class roboticsImportantDateController {
     }
 
     @PostMapping
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> addImportantDate(@RequestParam("date") String date, @RequestParam("conferencecode") String conferencecode, @RequestParam("dateType") String dateType, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             roboticsImportantDate saved = dateService.saveImportantDate(date, conferencecode, dateType);
@@ -54,6 +56,7 @@ public class roboticsImportantDateController {
     }
 
     @PutMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateImportantDate(@PathVariable("id") Long id, @RequestParam("date") String date, @RequestParam(value = "conferencecode", required = false) String conferencecode, @RequestParam(value = "dateType", required = false) String dateType, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             // Get the important date before update for comparison
@@ -82,6 +85,7 @@ public class roboticsImportantDateController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteImportantDate(@PathVariable("id") Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             roboticsImportantDate date = dateService.getImportantDateById(id);

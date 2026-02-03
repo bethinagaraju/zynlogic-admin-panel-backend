@@ -106,6 +106,7 @@ import conferenceadmin.conference.Service.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -127,6 +128,7 @@ public class AgendaController {
     // Keep them exactly as they were, I am only showing the fixed REORDER method below
 
     @PostMapping
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> addAgenda(@RequestParam("conferencecode") String conferencecode,
                                        @RequestParam("day") String day,
                                        @RequestParam("time") String time,
@@ -148,6 +150,7 @@ public class AgendaController {
     }
 
     @PutMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateAgenda(@PathVariable("id") Long id,
                                           @RequestParam(value = "conferencecode", required = false) String conferencecode,
                                           @RequestParam(value = "day", required = false) String day,
@@ -205,6 +208,7 @@ public class AgendaController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteAgenda(@PathVariable("id") Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             Agenda agenda = agendaService.getAgendaById(id);
@@ -220,6 +224,7 @@ public class AgendaController {
     //  FIXED REORDER METHOD
     // ---------------------------------------------------------
     @PutMapping("/reorder")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> reorderAgendas(@RequestBody ReorderRequest request) {
         try {
             // Validate that we have data
