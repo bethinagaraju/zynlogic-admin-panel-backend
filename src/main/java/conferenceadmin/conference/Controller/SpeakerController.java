@@ -40,13 +40,14 @@ public class SpeakerController {
             @RequestParam("university") String university,
             @RequestParam("conferencecode") String conferencecode,
             @RequestParam("speakerType") String speakerType,
+            @RequestParam(value = "visible", defaultValue = "true") boolean visible,
             @RequestParam("username") String username,
             HttpServletRequest request
     ) {
         try {
-            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode, speakerType);
-            String newValues = String.format("Name: %s, University: %s, Conference: %s, Type: %s",
-                                           name, university, conferencecode, speakerType);
+            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode, speakerType, visible);
+            String newValues = String.format("Name: %s, University: %s, Conference: %s, Type: %s, Visible: %s",
+                                           name, university, conferencecode, speakerType, visible);
             auditService.logCreate(username, "Speaker", saved.getId().toString(), name, newValues, request, conferencecode);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IOException e) {
@@ -70,6 +71,7 @@ public class SpeakerController {
             @RequestParam(value = "university", required = false) String university,
             @RequestParam(value = "conferencecode", required = false) String conferencecode,
             @RequestParam(value = "speakerType", required = false) String speakerType,
+            @RequestParam(value = "visible", required = false) Boolean visible,
             @RequestParam("username") String username,
             HttpServletRequest request
     ) {
@@ -78,15 +80,15 @@ public class SpeakerController {
             Speaker existingSpeaker = speakerService.getSpeakerById(id);
 
             // uploaded file takes precedence over provided URL
-            Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university, conferencecode, speakerType);
+            Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university, conferencecode, speakerType, visible);
 
             // Always log the update attempt with details of what was requested to change
-            String requestedChanges = buildRequestedChangesString(name, university, conferencecode, speakerType, image, imageUrl);
+            String requestedChanges = buildRequestedChangesString(name, university, conferencecode, speakerType, image, imageUrl, visible);
             String currentValues = buildCurrentValuesString(existingSpeaker);
             String updatedValues = buildUpdatedValuesString(updated);
 
             // Detect actual changes by comparing what was requested vs what actually changed
-            String actualChanges = buildActualChangesDescription(existingSpeaker, updated, name, university, conferencecode, speakerType, image, imageUrl);
+            String actualChanges = buildActualChangesDescription(existingSpeaker, updated, name, university, conferencecode, speakerType, image, imageUrl, visible);
 
             auditService.logUpdate(username, "Speaker", id.toString(), updated.getName(),
                                  actualChanges,
@@ -142,7 +144,7 @@ public class SpeakerController {
         }
     }
 
-    private String buildRequestedChangesString(String name, String university, String conferencecode, String speakerType, MultipartFile image, String imageUrl) {
+    private String buildRequestedChangesString(String name, String university, String conferencecode, String speakerType, MultipartFile image, String imageUrl, Boolean visible) {
         StringBuilder requested = new StringBuilder("Update requested for: ");
         boolean hasChanges = false;
 
@@ -170,20 +172,25 @@ public class SpeakerController {
             requested.append("Image");
             hasChanges = true;
         }
+        if (visible != null) {
+            if (hasChanges) requested.append(", ");
+            requested.append("Visible");
+            hasChanges = true;
+        }
 
         return hasChanges ? requested.toString() : "Update requested - no specific fields provided";
     }
 
     private String buildCurrentValuesString(Speaker speaker) {
-        return String.format("Name: %s, University: %s, Conference: %s, Type: %s",
+        return String.format("Name: %s, University: %s, Conference: %s, Type: %s, Visible: %s",
                            speaker.getName(), speaker.getUniversity(),
-                           speaker.getConferencecode(), speaker.getSpeakerType());
+                           speaker.getConferencecode(), speaker.getSpeakerType(), speaker.isVisible());
     }
 
     private String buildUpdatedValuesString(Speaker speaker) {
-        return String.format("Name: %s, University: %s, Conference: %s, Type: %s",
+        return String.format("Name: %s, University: %s, Conference: %s, Type: %s, Visible: %s",
                            speaker.getName(), speaker.getUniversity(),
-                           speaker.getConferencecode(), speaker.getSpeakerType());
+                           speaker.getConferencecode(), speaker.getSpeakerType(), speaker.isVisible());
     }
 
     private String buildActualChangesString(Speaker oldSpeaker, Speaker newSpeaker) {
@@ -218,7 +225,7 @@ public class SpeakerController {
         return hasChanges ? actual.toString() : "No actual changes made - values were already up to date";
     }
 
-    private String buildActualChangesDescription(Speaker existing, Speaker updated, String requestedName, String requestedUniversity, String requestedConferencecode, String requestedSpeakerType, MultipartFile requestedImage, String requestedImageUrl) {
+    private String buildActualChangesDescription(Speaker existing, Speaker updated, String requestedName, String requestedUniversity, String requestedConferencecode, String requestedSpeakerType, MultipartFile requestedImage, String requestedImageUrl, Boolean requestedVisible) {
         StringBuilder description = new StringBuilder();
         boolean hasRequests = false;
 
@@ -277,6 +284,16 @@ public class SpeakerController {
                 description.append("Image URL was updated");
             } else {
                 description.append("Image URL  updated ");
+            }
+        }
+
+        if (requestedVisible != null) {
+            if (hasRequests) description.append("; ");
+            hasRequests = true;
+            if (existing.isVisible() != updated.isVisible()) {
+                description.append("Visible changed from '").append(existing.isVisible()).append("' to '").append(updated.isVisible()).append("'");
+            } else {
+                description.append("Visible  updated to '").append(requestedVisible).append("' ");
             }
         }
 

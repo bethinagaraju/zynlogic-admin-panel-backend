@@ -23,6 +23,9 @@ public class Speaker {
     @Column(nullable = false)
     private Integer orderIndex;
 
+    @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean visible = true;
+
     public Speaker() {
     }
 
@@ -33,6 +36,7 @@ public class Speaker {
         this.imagePath = imagePath;
         this.speakerType = speakerType;
         this.orderIndex = orderIndex;
+        this.visible = true;
     }
 
     public Long getId() {
@@ -89,5 +93,13 @@ public class Speaker {
 
     public void setOrderIndex(Integer orderIndex) {
         this.orderIndex = orderIndex;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 }

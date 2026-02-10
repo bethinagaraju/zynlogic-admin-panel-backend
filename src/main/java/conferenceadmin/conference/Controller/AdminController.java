@@ -91,7 +91,7 @@ public class AdminController {
                 Optional<Admin> adminOpt = adminService.getAdminByUsername(username);
                 String role = adminOpt.isPresent() ? adminOpt.get().getRole() : "UNKNOWN";
                 return ResponseEntity.ok(Map.of(
-                    "message", "Credentials verified. OTP sent to manager email. Please verify OTP.",
+                    "message", "Credentials verified. OTP sent to your email. Please verify OTP.",
                     "requiresOtp", true,
                     "otpSent", true,
                     "role", role
