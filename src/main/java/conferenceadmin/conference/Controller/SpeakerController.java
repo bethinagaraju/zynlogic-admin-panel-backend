@@ -41,11 +41,14 @@ public class SpeakerController {
             @RequestParam("conferencecode") String conferencecode,
             @RequestParam("speakerType") String speakerType,
             @RequestParam(value = "visible", defaultValue = "true") boolean visible,
+            @RequestParam(value = "slug", required = false) String slug,
+            @RequestParam(value = "linkedin", required = false) String linkedin,
+            @RequestParam(value = "partnerLogo", required = false) MultipartFile partnerLogo,
             @RequestParam("username") String username,
             HttpServletRequest request
     ) {
         try {
-            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode, speakerType, visible);
+            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode, speakerType, visible, slug, linkedin, partnerLogo);
             String newValues = String.format("Name: %s, University: %s, Conference: %s, Type: %s, Visible: %s",
                                            name, university, conferencecode, speakerType, visible);
             auditService.logCreate(username, "Speaker", saved.getId().toString(), name, newValues, request, conferencecode);
@@ -72,6 +75,9 @@ public class SpeakerController {
             @RequestParam(value = "conferencecode", required = false) String conferencecode,
             @RequestParam(value = "speakerType", required = false) String speakerType,
             @RequestParam(value = "visible", required = false) Boolean visible,
+            @RequestParam(value = "slug", required = false) String slug,
+            @RequestParam(value = "linkedin", required = false) String linkedin,
+            @RequestParam(value = "partnerLogo", required = false) MultipartFile partnerLogo,
             @RequestParam("username") String username,
             HttpServletRequest request
     ) {
@@ -80,7 +86,8 @@ public class SpeakerController {
             Speaker existingSpeaker = speakerService.getSpeakerById(id);
 
             // uploaded file takes precedence over provided URL
-            Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university, conferencecode, speakerType, visible);
+            Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university, conferencecode, 
+                                                           speakerType, visible, slug, linkedin, partnerLogo);
 
             // Always log the update attempt with details of what was requested to change
             String requestedChanges = buildRequestedChangesString(name, university, conferencecode, speakerType, image, imageUrl, visible);
@@ -298,5 +305,25 @@ public class SpeakerController {
         }
 
         return hasRequests ? description.toString() : "Update requested - no specific fields provided";
+    }
+
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<?> getSpeakerBySlug(@PathVariable String slug) {
+        try {
+            Speaker speaker = speakerService.getSpeakerBySlug(slug);
+            return ResponseEntity.ok(speaker);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<?> getSpeakerByName(@PathVariable String name) {
+        try {
+            Speaker speaker = speakerService.getSpeakerByName(name);
+            return ResponseEntity.ok(speaker);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 }

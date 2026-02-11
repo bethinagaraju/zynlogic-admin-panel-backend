@@ -1,6 +1,9 @@
 package conferenceadmin.conference.Entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "speakers")
@@ -25,6 +28,19 @@ public class Speaker {
 
     @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean visible = true;
+
+    @Column(unique = true)
+    private String slug;
+
+    @Column(nullable = true)
+    private String linkedin;
+
+    @Column(nullable = true)
+    private String partnerLogo;
+
+    @OneToMany(mappedBy = "speaker", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<SpeakerSection> sections = new ArrayList<>();
 
     public Speaker() {
     }
@@ -101,5 +117,37 @@ public class Speaker {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public List<SpeakerSection> getSections() {
+        return sections;
+    }
+
+    public void setSections(List<SpeakerSection> sections) {
+        this.sections = sections;
+    }
+
+    public String getLinkedin() {
+        return linkedin;
+    }
+
+    public void setLinkedin(String linkedin) {
+        this.linkedin = linkedin;
+    }
+
+    public String getPartnerLogo() {
+        return partnerLogo;
+    }
+
+    public void setPartnerLogo(String partnerLogo) {
+        this.partnerLogo = partnerLogo;
     }
 }

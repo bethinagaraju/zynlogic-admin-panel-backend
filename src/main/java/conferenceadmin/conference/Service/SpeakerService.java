@@ -43,13 +43,14 @@ public class SpeakerService {
         this.speakerRepository = speakerRepository;
     }
 
-    public Speaker saveSpeaker(MultipartFile image, String name, String university, String conferencecode, String speakerType, boolean visible) throws IOException {
+    public Speaker saveSpeaker(MultipartFile image, String name, String university, String conferencecode, String speakerType, boolean visible,
+                               String slug, String linkedin, MultipartFile partnerLogo) throws IOException {
         String original = Objects.requireNonNull(image.getOriginalFilename());
         String filename = System.currentTimeMillis() + "_" + original.replaceAll("[^a-zA-Z0-9._-]", "_");
 
         // upload via FTP
         FTPClient ftpClient = new FTPClient();
-        try (InputStream input = image.getInputStream()) {
+        try {
             ftpClient.connect(ftpHost, ftpPort);
             if (!ftpClient.login(ftpUser, ftpPass)) {
                 throw new IOException("FTP login failed");
@@ -57,40 +58,70 @@ public class SpeakerService {
             ftpClient.enterLocalPassiveMode();
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-            String remotePath = ftpUploadPath;
-            if (!remotePath.endsWith("/")) {
-                remotePath = remotePath + "/";
-            }
-            String remoteFile = remotePath + filename;
+            // Upload speaker image
+            try (InputStream input = image.getInputStream()) {
+                String remotePath = ftpUploadPath;
+                if (!remotePath.endsWith("/")) {
+                    remotePath = remotePath + "/";
+                }
+                String remoteFile = remotePath + filename;
 
-            boolean stored = ftpClient.storeFile(remoteFile, input);
+                boolean stored = ftpClient.storeFile(remoteFile, input);
+                if (!stored) {
+                    throw new IOException("Failed to store file on FTP server");
+                }
+            }
+
+            // Upload partner logo if present
+            String logoPath = null;
+            if (partnerLogo != null && !partnerLogo.isEmpty()) {
+                String logoOriginal = Objects.requireNonNull(partnerLogo.getOriginalFilename());
+                String logoFilename = "logo_" + System.currentTimeMillis() + "_" + logoOriginal.replaceAll("[^a-zA-Z0-9._-]", "_");
+                
+                try (InputStream logoInput = partnerLogo.getInputStream()) {
+                    String remotePath = ftpUploadPath;
+                    if (!remotePath.endsWith("/")) {
+                        remotePath = remotePath + "/";
+                    }
+                    String remoteFile = remotePath + logoFilename;
+                    
+                    boolean stored = ftpClient.storeFile(remoteFile, logoInput);
+                    if (stored) {
+                        String publicLogoUrl = publicUrl;
+                        if (!publicLogoUrl.endsWith("/")) {
+                            publicLogoUrl += "/";
+                        }
+                        logoPath = publicLogoUrl + logoFilename;
+                    }
+                }
+            }
+
             ftpClient.logout();
             ftpClient.disconnect();
-
-            if (!stored) {
-                throw new IOException("Failed to store file on FTP server");
+            
+            String imagePath = publicUrl;
+            if (!publicUrl.endsWith("/")) {
+                imagePath += "/";
             }
+            imagePath += filename;
+
+            Speaker speaker = new Speaker(name, university, conferencecode, imagePath, speakerType, getNextOrderIndex(conferencecode));
+            speaker.setVisible(visible);
+            if (slug != null && !slug.isBlank()) speaker.setSlug(slug);
+            if (linkedin != null && !linkedin.isBlank()) speaker.setLinkedin(linkedin);
+            if (logoPath != null) speaker.setPartnerLogo(logoPath);
+            
+            return speakerRepository.save(speaker);
+
         } catch (IOException ex) {
-            // ensure disconnect
             if (ftpClient.isConnected()) {
                 try {
                     ftpClient.logout();
                     ftpClient.disconnect();
-                } catch (IOException ignore) {
-                }
+                } catch (IOException ignore) {}
             }
             throw ex;
         }
-
-        String imagePath = publicUrl;
-        if (!publicUrl.endsWith("/")) {
-            imagePath += "/";
-        }
-        imagePath += filename;
-
-        Speaker speaker = new Speaker(name, university, conferencecode, imagePath, speakerType, getNextOrderIndex(conferencecode));
-        speaker.setVisible(visible);
-        return speakerRepository.save(speaker);
     }
 
     public List<Speaker> getAllSpeakers() {
@@ -101,7 +132,9 @@ public class SpeakerService {
         return speakerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Speaker not found"));
     }
 
-    public Speaker updateSpeaker(Long id, MultipartFile image, String imageUrl, String name, String university, String conferencecode, String speakerType, Boolean visible) throws IOException {
+    public Speaker updateSpeaker(Long id, MultipartFile image, String imageUrl, String name, String university, 
+                                  String conferencecode, String speakerType, Boolean visible, 
+                                  String slug, String linkedin, MultipartFile partnerLogo) throws IOException {
         Optional<Speaker> opt = speakerRepository.findById(id);
         if (opt.isEmpty()) {
             throw new IOException("Speaker not found with id: " + id);
@@ -124,6 +157,61 @@ public class SpeakerService {
 
         if (visible != null) {
             speaker.setVisible(visible);
+        }
+
+        if (slug != null && !slug.isBlank()) {
+            speaker.setSlug(slug);
+        }
+
+        if (linkedin != null && !linkedin.isBlank()) {
+            speaker.setLinkedin(linkedin);
+        }
+
+        // Handle partner logo file upload
+        if (partnerLogo != null && !partnerLogo.isEmpty()) {
+            String original = Objects.requireNonNull(partnerLogo.getOriginalFilename());
+            String filename = "logo_" + System.currentTimeMillis() + "_" + original.replaceAll("[^a-zA-Z0-9._-]", "_");
+
+            FTPClient ftpClient = new FTPClient();
+            try (InputStream input = partnerLogo.getInputStream()) {
+                ftpClient.connect(ftpHost, ftpPort);
+                if (!ftpClient.login(ftpUser, ftpPass)) {
+                    throw new IOException("FTP login failed for partner logo");
+                }
+                ftpClient.enterLocalPassiveMode();
+                ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+
+                String remotePath = ftpUploadPath;
+                if (!remotePath.endsWith("/")) {
+                    remotePath = remotePath + "/";
+                }
+                String remoteFile = remotePath + filename;
+
+                boolean stored = ftpClient.storeFile(remoteFile, input);
+                ftpClient.logout();
+                ftpClient.disconnect();
+
+                if (!stored) {
+                    throw new IOException("Failed to store partner logo on FTP server");
+                }
+            } catch (IOException ex) {
+                if (ftpClient.isConnected()) {
+                    try {
+                        ftpClient.logout();
+                        ftpClient.disconnect();
+                    } catch (IOException ignore) {
+                    }
+                }
+                throw ex;
+            }
+
+            String logoPath = publicUrl;
+            if (!publicUrl.endsWith("/")) {
+                logoPath += "/";
+            }
+            logoPath += filename;
+
+            speaker.setPartnerLogo(logoPath);
         }
 
         // if new image file provided, upload and replace imagePath
@@ -239,5 +327,15 @@ public class SpeakerService {
                 speakerRepository.save(s);
             }
         }
+    }
+
+    public Speaker getSpeakerBySlug(String slug) {
+        return speakerRepository.findBySlug(slug)
+                .orElseThrow(() -> new IllegalArgumentException("Speaker not found with slug: " + slug));
+    }
+
+    public Speaker getSpeakerByName(String name) {
+        return speakerRepository.findByName(name)
+                .orElseThrow(() -> new IllegalArgumentException("Speaker not found with name: " + name));
     }
 }
