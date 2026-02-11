@@ -26,10 +26,12 @@ public class SpeakerController {
 
     private final SpeakerService speakerService;
     private final AuditService auditService;
+    private final conferenceadmin.conference.Service.SpeakerSpeakingSectionService speakingSectionService;
 
-    public SpeakerController(SpeakerService speakerService, AuditService auditService) {
+    public SpeakerController(SpeakerService speakerService, AuditService auditService, conferenceadmin.conference.Service.SpeakerSpeakingSectionService speakingSectionService) {
         this.speakerService = speakerService;
         this.auditService = auditService;
+        this.speakingSectionService = speakingSectionService;
     }
 
     @PostMapping("/robotics")
@@ -324,6 +326,39 @@ public class SpeakerController {
             return ResponseEntity.ok(speaker);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/slug/{slug}/full")
+    public ResponseEntity<?> getSpeakerFullDetails(@PathVariable String slug) {
+        try {
+            Speaker speaker = speakerService.getSpeakerBySlug(slug);
+            java.util.List<conferenceadmin.conference.Entity.SpeakerSpeakingSection> speakingSections = 
+                    speakingSectionService.getSectionsBySlug(slug);
+            
+            SpeakerFullDetailsDTO fullDetails = new SpeakerFullDetailsDTO(speaker, speakingSections);
+            return ResponseEntity.ok(fullDetails);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    // DTO for full details
+    public static class SpeakerFullDetailsDTO {
+        private Speaker speaker;
+        private java.util.List<conferenceadmin.conference.Entity.SpeakerSpeakingSection> speakingSections;
+
+        public SpeakerFullDetailsDTO(Speaker speaker, java.util.List<conferenceadmin.conference.Entity.SpeakerSpeakingSection> speakingSections) {
+            this.speaker = speaker;
+            this.speakingSections = speakingSections;
+        }
+
+        public Speaker getSpeaker() {
+            return speaker;
+        }
+
+        public java.util.List<conferenceadmin.conference.Entity.SpeakerSpeakingSection> getSpeakingSections() {
+            return speakingSections;
         }
     }
 }
