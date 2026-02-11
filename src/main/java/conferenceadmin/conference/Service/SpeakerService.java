@@ -159,11 +159,11 @@ public class SpeakerService {
             speaker.setVisible(visible);
         }
 
-        if (slug != null && !slug.isBlank()) {
+        if (slug != null) {
             speaker.setSlug(slug);
         }
 
-        if (linkedin != null && !linkedin.isBlank()) {
+        if (linkedin != null) {
             speaker.setLinkedin(linkedin);
         }
 
