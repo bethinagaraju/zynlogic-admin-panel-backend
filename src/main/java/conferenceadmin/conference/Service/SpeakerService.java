@@ -5,21 +5,23 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import conferenceadmin.conference.Service.SpeakerSpeakingSectionService;
+import java.util.HashMap;
+import java.util.Map;
 import conferenceadmin.conference.Repository.SpeakerRepository;
 import conferenceadmin.conference.Entity.Speaker;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
+import java.io.InputStream;
+import java.util.Optional;
+import conferenceadmin.conference.Entity.SpeakerSpeakingSection;
 
 @Service
 public class SpeakerService {
 
     private final SpeakerRepository speakerRepository;
+    private final SpeakerSpeakingSectionService speakingSectionService;
 
     @Value("${hostinger.ftp.host}")
     private String ftpHost;
@@ -39,8 +41,9 @@ public class SpeakerService {
     @Value("${hostinger.public-url}")
     private String publicUrl;
 
-    public SpeakerService(SpeakerRepository speakerRepository) {
+    public SpeakerService(SpeakerRepository speakerRepository, SpeakerSpeakingSectionService speakingSectionService) {
         this.speakerRepository = speakerRepository;
+        this.speakingSectionService = speakingSectionService;
     }
 
     public Speaker saveSpeaker(MultipartFile image, String name, String university, String conferencecode, String speakerType, boolean visible,
@@ -159,11 +162,11 @@ public class SpeakerService {
             speaker.setVisible(visible);
         }
 
-        if (slug != null) {
+        if (slug != null && !slug.isBlank()) {
             speaker.setSlug(slug);
         }
 
-        if (linkedin != null) {
+        if (linkedin != null && !linkedin.isBlank()) {
             speaker.setLinkedin(linkedin);
         }
 
@@ -332,6 +335,16 @@ public class SpeakerService {
     public Speaker getSpeakerBySlug(String slug) {
         return speakerRepository.findBySlug(slug)
                 .orElseThrow(() -> new IllegalArgumentException("Speaker not found with slug: " + slug));
+    }
+
+    public Map<String, Object> getSpeakerFullDetails(String slug) {
+        Speaker speaker = getSpeakerBySlug(slug);
+        List<SpeakerSpeakingSection> speakingSections = speakingSectionService.getSectionsBySlug(slug);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("speaker", speaker);
+        result.put("speakingSections", speakingSections);
+        return result;
     }
 
     public Speaker getSpeakerByName(String name) {

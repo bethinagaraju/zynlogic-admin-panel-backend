@@ -56,10 +56,11 @@ POST http://localhost:8080/api/speaker-speaking-sections/speaker/{speakerId}
 - `title` (String)
 - `description` (String)
 - `date` (String, e.g., "2024-10-15")
+- `username` (String, required for logging)
 
 ### **Example (cURL):**
 ```bash
-curl -X POST "http://localhost:8080/api/speaker-speaking-sections/speaker/12?title=Keynote%20Speech&description=AI%20Future&date=2024-10-15"
+curl -X POST "http://localhost:8080/api/speaker-speaking-sections/speaker/12?title=Keynote%20Speech&description=AI%20Future&date=2024-10-15&username=admin"
 ```
 
 ---
@@ -77,10 +78,11 @@ Only send fields you want to update.
 - `title` (String)
 - `description` (String)
 - `date` (String)
+- `username` (String, required for logging)
 
 ### **Example (cURL):**
 ```bash
-curl -X PUT "http://localhost:8080/api/speaker-speaking-sections/1?title=Updated%20Title"
+curl -X PUT "http://localhost:8080/api/speaker-speaking-sections/1?title=Updated%20Title&username=admin"
 ```
 
 ---
@@ -92,9 +94,12 @@ curl -X PUT "http://localhost:8080/api/speaker-speaking-sections/1?title=Updated
 DELETE http://localhost:8080/api/speaker-speaking-sections/{id}
 ```
 
+### **Parameters (Query Params):**
+- `username` (String, required for logging)
+
 ### **Example (cURL):**
 ```bash
-curl -X DELETE "http://localhost:8080/api/speaker-speaking-sections/1"
+curl -X DELETE "http://localhost:8080/api/speaker-speaking-sections/1?username=admin"
 ```
 
 ---

@@ -9,15 +9,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import conferenceadmin.conference.Service.AuditService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/speaker-sections")
 public class SpeakerSectionController {
 
     private final SpeakerSectionService speakerSectionService;
+    private final AuditService auditService;
 
-    public SpeakerSectionController(SpeakerSectionService speakerSectionService) {
+    public SpeakerSectionController(SpeakerSectionService speakerSectionService, AuditService auditService) {
         this.speakerSectionService = speakerSectionService;
+        this.auditService = auditService;
     }
 
     /**
@@ -28,10 +32,14 @@ public class SpeakerSectionController {
     @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> createSection(
             @PathVariable Long speakerId,
-            @RequestParam("content") String content
+            @RequestParam("content") String content,
+            @RequestParam("username") String username,
+            HttpServletRequest request
     ) {
         try {
             SpeakerSection section = speakerSectionService.createSection(speakerId, content);
+            String newValues = String.format("Speaker ID: %d, Content: %s", speakerId, content);
+            auditService.logAction(username, "CREATE_SPEAKER_SECTION", newValues, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(section);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -49,10 +57,14 @@ public class SpeakerSectionController {
     @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> createMultipleSections(
             @PathVariable Long speakerId,
-            @RequestBody List<SpeakerSectionDTO> sections
+            @RequestBody List<SpeakerSectionDTO> sections,
+            @RequestParam("username") String username,
+            HttpServletRequest request
     ) {
         try {
             List<SpeakerSection> createdSections = speakerSectionService.createMultipleSections(speakerId, sections);
+            String newValues = String.format("Speaker ID: %d, Sections Count: %d", speakerId, sections.size());
+            auditService.logAction(username, "CREATE_MULTIPLE_SPEAKER_SECTIONS", newValues, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSections);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -165,11 +177,16 @@ public class SpeakerSectionController {
             @RequestParam(value = "content", required = false) String content,
             @RequestParam(value = "priorities", required = false) String priorities,
             @RequestParam(value = "currentFocus", required = false) String currentFocus,
-            @RequestParam(value = "futureFocus", required = false) String futureFocus
+            @RequestParam(value = "futureFocus", required = false) String futureFocus,
+            @RequestParam("username") String username,
+            HttpServletRequest request
     ) {
         try {
             SpeakerSection section = speakerSectionService.updateSection(id, content, 
                                                                            priorities, currentFocus, futureFocus);
+            String newValues = String.format("Section ID: %d, Content: %s, Priorities: %s, CurrentFocus: %s, FutureFocus: %s", 
+                                             id, content, priorities, currentFocus, futureFocus);
+            auditService.logAction(username, "UPDATE_SPEAKER_SECTION", newValues, request);
             return ResponseEntity.ok(section);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -185,9 +202,11 @@ public class SpeakerSectionController {
      */
     @DeleteMapping("/{id}")
     @CacheEvict(value = "conferenceData", allEntries = true)
-    public ResponseEntity<?> deleteSection(@PathVariable Long id) {
+    public ResponseEntity<?> deleteSection(@PathVariable Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             speakerSectionService.deleteSection(id);
+            String newValues = String.format("Section ID: %d", id);
+            auditService.logAction(username, "DELETE_SPEAKER_SECTION", newValues, request);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

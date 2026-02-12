@@ -4,29 +4,45 @@ import conferenceadmin.conference.Entity.SpeakerSpeakingSection;
 import conferenceadmin.conference.Service.SpeakerSpeakingSectionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.cache.annotation.CacheEvict;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import java.util.List;
+import conferenceadmin.conference.Service.AuditService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/speaker-speaking-sections")
 public class SpeakerSpeakingSectionController {
 
     private final SpeakerSpeakingSectionService service;
+    private final AuditService auditService;
 
-    public SpeakerSpeakingSectionController(SpeakerSpeakingSectionService service) {
+    public SpeakerSpeakingSectionController(SpeakerSpeakingSectionService service, AuditService auditService) {
         this.service = service;
+        this.auditService = auditService;
     }
 
     // Create
     @PostMapping("/speaker/{speakerId}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> createSection(@PathVariable Long speakerId,
                                            @RequestParam("title") String title,
                                            @RequestParam("description") String description,
-                                           @RequestParam("date") String date) {
+                                           @RequestParam("date") String date,
+                                           @RequestParam("username") String username,
+                                           HttpServletRequest request) {
         try {
             SpeakerSpeakingSection section = service.createSection(speakerId, title, description, date);
+            String newValues = String.format("Speaker ID: %d, Title: %s, Description: %s, Date: %s", speakerId, title, description, date);
+            auditService.logAction(username, "CREATE_SPEAKER_SPEAKING_SECTION", newValues, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(new EnhancedSpeakerSpeakingSectionDTO(section));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -76,12 +92,17 @@ public class SpeakerSpeakingSectionController {
 
     // Update
     @PutMapping("/{id}")
+    @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> updateSection(@PathVariable Long id,
                                            @RequestParam(value = "title", required = false) String title,
                                            @RequestParam(value = "description", required = false) String description,
-                                           @RequestParam(value = "date", required = false) String date) {
+                                           @RequestParam(value = "date", required = false) String date,
+                                           @RequestParam("username") String username,
+                                           HttpServletRequest request) {
         try {
             SpeakerSpeakingSection section = service.updateSection(id, title, description, date);
+            String newValues = String.format("Section ID: %d, Title: %s, Description: %s, Date: %s", id, title, description, date);
+            auditService.logAction(username, "UPDATE_SPEAKER_SPEAKING_SECTION", newValues, request);
             return ResponseEntity.ok(new EnhancedSpeakerSpeakingSectionDTO(section));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -90,9 +111,12 @@ public class SpeakerSpeakingSectionController {
 
     // Delete
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteSection(@PathVariable Long id) {
+    @CacheEvict(value = "conferenceData", allEntries = true)
+    public ResponseEntity<?> deleteSection(@PathVariable Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
             service.deleteSection(id);
+            String newValues = String.format("Section ID: %d", id);
+            auditService.logAction(username, "DELETE_SPEAKER_SPEAKING_SECTION", newValues, request);
             return ResponseEntity.ok("Deleted successfully");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

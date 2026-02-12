@@ -29,6 +29,11 @@ public class AuditService {
                                   "Deleted " + entityType.toLowerCase(), entityName, null, conferenceCode);
     }
 
+    public void logAction(String username, String action, String details, HttpServletRequest request) {
+        String ipAddress = getClientIpAddress(request);
+        auditLogService.logActivity(username, ipAddress, action, "SpeakerSection", null, null, details, null, null, null);
+    }
+
     private String getClientIpAddress(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {

@@ -42,11 +42,13 @@ POST /api/speaker-sections/speaker/{speakerId}
 | `priorities` | String | ❌ No | Networking priorities |
 | `currentFocus` | String | ❌ No | Current focus |
 | `futureFocus` | String | ❌ No | Future focus |
+| `username` | String | ✅ Yes | Username for audit logging |
 
 ### **Example:**
 ```bash
 curl -X POST "http://localhost:8080/api/speaker-sections/speaker/1" \
-  -d "content=Prof. Yanda Li is an expert in robotics..."
+  -d "content=Prof. Yanda Li is an expert in robotics..." \
+  -d "username=admin"
 ```
 
 ### **With Networking Insights:**
@@ -55,7 +57,8 @@ curl -X POST "http://localhost:8080/api/speaker-sections/speaker/1" \
   -d "content=General overview of networking activities" \
   -d "priorities=Building collaborative research networks" \
   -d "currentFocus=AI safety and ethics" \
-  -d "futureFocus=Medical robotics"
+  -d "futureFocus=Medical robotics" \
+  -d "username=admin"
 ```
 
 ### **Response:** `201 Created`
@@ -78,6 +81,11 @@ curl -X POST "http://localhost:8080/api/speaker-sections/speaker/1" \
 POST /api/speaker-sections/speaker/{speakerId}/bulk
 ```
 
+### **Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `username` | String | ✅ Yes | Username for audit logging |
+
 ### **Content-Type:** `application/json`
 
 ### **Request Body:**
@@ -94,7 +102,7 @@ POST /api/speaker-sections/speaker/{speakerId}/bulk
 
 ### **Example:**
 ```bash
-curl -X POST "http://localhost:8080/api/speaker-sections/speaker/1/bulk" \
+curl -X POST "http://localhost:8080/api/speaker-sections/speaker/1/bulk?username=admin" \
   -H "Content-Type: application/json" \
   -d '[
     {
@@ -238,6 +246,7 @@ PUT /api/speaker-sections/{id}
 | `priorities` | String | ❌ No | Networking priorities |
 | `currentFocus` | String | ❌ No | Current focus |
 | `futureFocus` | String | ❌ No | Future focus |
+| `username` | String | ✅ Yes | Username for audit logging |
 
 ### **Example - Update All Fields:**
 ```bash
@@ -245,13 +254,15 @@ curl -X PUT "http://localhost:8080/api/speaker-sections/1" \
   -d "content=Updated content" \
   -d "priorities=Updated priorities" \
   -d "currentFocus=Updated current focus" \
-  -d "futureFocus=Updated future focus"
+  -d "futureFocus=Updated future focus" \
+  -d "username=admin"
 ```
 
 ### **Example - Update Only One Field:**
 ```bash
 curl -X PUT "http://localhost:8080/api/speaker-sections/1" \
-  -d "content=New content text"
+  -d "content=New content text" \
+  -d "username=admin"
 ```
 
 ### **Response:** `200 OK`
@@ -274,9 +285,14 @@ curl -X PUT "http://localhost:8080/api/speaker-sections/1" \
 DELETE /api/speaker-sections/{id}
 ```
 
+### **Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `username` | String | ✅ Yes | Username for audit logging |
+
 ### **Example:**
 ```bash
-curl -X DELETE "http://localhost:8080/api/speaker-sections/1"
+curl -X DELETE "http://localhost:8080/api/speaker-sections/1?username=admin"
 ```
 
 ### **Response:** `204 No Content`
@@ -312,7 +328,7 @@ curl -X POST http://localhost:8080/api/speakers/robotics \
   -F "username=admin"
 
 # 2. Add sections in bulk
-curl -X POST "http://localhost:8080/api/speaker-sections/speaker/1/bulk" \
+curl -X POST "http://localhost:8080/api/speaker-sections/speaker/1/bulk?username=admin" \
   -H "Content-Type: application/json" \
   -d '[
     {
@@ -331,10 +347,11 @@ curl -X GET "http://localhost:8080/api/speaker-sections/speaker/1"
 
 # 4. Update a section
 curl -X PUT "http://localhost:8080/api/speaker-sections/2" \
-  -d "priorities=Updated priorities text"
+  -d "priorities=Updated priorities text" \
+  -d "username=admin"
 
 # 5. Delete a section (if needed)
-curl -X DELETE "http://localhost:8080/api/speaker-sections/2"
+curl -X DELETE "http://localhost:8080/api/speaker-sections/2?username=admin"
 ```
 
 ---
