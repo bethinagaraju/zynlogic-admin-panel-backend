@@ -39,7 +39,8 @@ public class SpeakerSectionController {
         try {
             SpeakerSection section = speakerSectionService.createSection(speakerId, content);
             String newValues = String.format("Speaker ID: %d, Content: %s", speakerId, content);
-            auditService.logAction(username, "CREATE_SPEAKER_SECTION", newValues, request);
+            auditService.logCreate(username, "SpeakerSection", section.getId().toString(), 
+                                 section.getContent(), newValues, request, section.getSpeaker().getConferencecode());
             return ResponseEntity.status(HttpStatus.CREATED).body(section);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -63,8 +64,14 @@ public class SpeakerSectionController {
     ) {
         try {
             List<SpeakerSection> createdSections = speakerSectionService.createMultipleSections(speakerId, sections);
-            String newValues = String.format("Speaker ID: %d, Sections Count: %d", speakerId, sections.size());
-            auditService.logAction(username, "CREATE_MULTIPLE_SPEAKER_SECTIONS", newValues, request);
+            // Log each section creation
+            for (SpeakerSection section : createdSections) {
+                String newValues = String.format("Speaker ID: %d, Content: %s, Priorities: %s, CurrentFocus: %s, FutureFocus: %s", 
+                                               speakerId, section.getContent(), section.getPriorities(), 
+                                               section.getCurrentFocus(), section.getFutureFocus());
+                auditService.logCreate(username, "SpeakerSection", section.getId().toString(), 
+                                     section.getContent(), newValues, request, section.getSpeaker().getConferencecode());
+            }
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSections);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -182,11 +189,22 @@ public class SpeakerSectionController {
             HttpServletRequest request
     ) {
         try {
+            // Get current section before update for logging
+            SpeakerSection existingSection = speakerSectionService.getSectionById(id);
+            String oldValues = String.format("Content: %s, Priorities: %s, CurrentFocus: %s, FutureFocus: %s",
+                                           existingSection.getContent(), existingSection.getPriorities(),
+                                           existingSection.getCurrentFocus(), existingSection.getFutureFocus());
+            
             SpeakerSection section = speakerSectionService.updateSection(id, content, 
                                                                            priorities, currentFocus, futureFocus);
-            String newValues = String.format("Section ID: %d, Content: %s, Priorities: %s, CurrentFocus: %s, FutureFocus: %s", 
-                                             id, content, priorities, currentFocus, futureFocus);
-            auditService.logAction(username, "UPDATE_SPEAKER_SECTION", newValues, request);
+            
+            String newValues = String.format("Content: %s, Priorities: %s, CurrentFocus: %s, FutureFocus: %s", 
+                                           section.getContent(), section.getPriorities(),
+                                           section.getCurrentFocus(), section.getFutureFocus());
+            
+            String changes = "Updated speaker section fields";
+            auditService.logUpdate(username, "SpeakerSection", id.toString(), section.getContent(),
+                                 changes, oldValues, newValues, request, section.getSpeaker().getConferencecode());
             return ResponseEntity.ok(section);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -204,9 +222,12 @@ public class SpeakerSectionController {
     @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> deleteSection(@PathVariable Long id, @RequestParam("username") String username, HttpServletRequest request) {
         try {
+            // Get section before deleting for logging
+            SpeakerSection section = speakerSectionService.getSectionById(id);
+            String conferenceCode = section.getSpeaker().getConferencecode();
+            
             speakerSectionService.deleteSection(id);
-            String newValues = String.format("Section ID: %d", id);
-            auditService.logAction(username, "DELETE_SPEAKER_SECTION", newValues, request);
+            auditService.logDelete(username, "SpeakerSection", id.toString(), section.getContent(), request, conferenceCode);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
