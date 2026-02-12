@@ -53,14 +53,19 @@ POST http://localhost:8080/api/speaker-speaking-sections/speaker/{speakerId}
 ```
 
 ### **Parameters (Query Params):**
-- `title` (String)
-- `description` (String)
-- `date` (String, e.g., "2024-10-15")
+- `title` (String, required)
+- `description` (String, optional)
+- `date` (String, optional)
 - `username` (String, required for logging)
 
 ### **Example (cURL):**
 ```bash
 curl -X POST "http://localhost:8080/api/speaker-speaking-sections/speaker/12?title=Keynote%20Speech&description=AI%20Future&date=2024-10-15&username=admin"
+```
+
+### **Example with minimal required fields:**
+```bash
+curl -X POST "http://localhost:8080/api/speaker-speaking-sections/speaker/12?title=Keynote%20Speech&username=admin"
 ```
 
 ---

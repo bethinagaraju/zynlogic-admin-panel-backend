@@ -35,8 +35,8 @@ public class SpeakerSpeakingSectionController {
     @CacheEvict(value = "conferenceData", allEntries = true)
     public ResponseEntity<?> createSection(@PathVariable Long speakerId,
                                            @RequestParam("title") String title,
-                                           @RequestParam("description") String description,
-                                           @RequestParam("date") String date,
+                                           @RequestParam(value = "description", required = false) String description,
+                                           @RequestParam(value = "date", required = false) String date,
                                            @RequestParam("username") String username,
                                            HttpServletRequest request) {
         try {

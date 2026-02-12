@@ -27,10 +27,15 @@ public class SpeakerSpeakingSection {
     public SpeakerSpeakingSection() {
     }
 
+    public SpeakerSpeakingSection(String title, Speaker speaker) {
+        this.title = title;
+        this.speaker = speaker;
+    }
+
     public SpeakerSpeakingSection(String title, String description, String date, Speaker speaker) {
         this.title = title;
-        this.description = description;
-        this.date = date;
+        this.description = description != null ? description : null;
+        this.date = date != null ? date : null;
         this.speaker = speaker;
     }
 
