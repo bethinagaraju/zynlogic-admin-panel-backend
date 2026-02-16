@@ -2,6 +2,7 @@ package conferenceadmin.conference.Controller;
 
 import conferenceadmin.conference.Entity.roboticsAbstractSubmission;
 import conferenceadmin.conference.Service.roboticsAbstractSubmissionService;
+import conferenceadmin.conference.dto.SubmissionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class roboticsAbstractSubmissionController {
     }
 
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<?> submitAbstract(
+    public ResponseEntity<SubmissionResponse> submitAbstract(
             @RequestParam("conferencecode") String conferencecode,
             @RequestParam("title") String title,
             @RequestParam("fullName") String fullName,
@@ -32,11 +33,12 @@ public class roboticsAbstractSubmissionController {
     ) {
         try {
             roboticsAbstractSubmission saved = submissionService.submitAbstract(conferencecode, title, fullName, phoneNumber, emailAddress, organization, country, file);
-            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+            return ResponseEntity.ok(SubmissionResponse.success("Submission received successfully", saved.getId()));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(SubmissionResponse.error(e.getMessage()));
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Submission failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(SubmissionResponse.error("Submission failed: " + e.getMessage()));
         }
     }
 
