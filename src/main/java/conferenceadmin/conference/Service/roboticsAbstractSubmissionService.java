@@ -4,14 +4,10 @@ import conferenceadmin.conference.Entity.roboticsAbstractSubmission;
 import conferenceadmin.conference.Repository.roboticsAbstractSubmissionRepository;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
@@ -19,8 +15,6 @@ import java.util.List;
 
 @Service
 public class roboticsAbstractSubmissionService {
-
-    private static final Logger logger = LoggerFactory.getLogger(roboticsAbstractSubmissionService.class);
 
     private final roboticsAbstractSubmissionRepository repository;
 
@@ -64,42 +58,12 @@ public class roboticsAbstractSubmissionService {
         }
         String filename = "abstract_" + Instant.now().toEpochMilli() + ext;
 
-        // Read file bytes immediately (before request completes)
-        byte[] fileBytes = file.getBytes();
-
-        // Build the expected public URL
-        String remotePath = abstractsUploadPath;
-        if (!remotePath.endsWith("/")) remotePath = remotePath + "/";
-        remotePath = remotePath + filename;
-
-        String filePath = remotePath;
-        if (publicUrl != null && !publicUrl.isBlank()) {
-            if (publicUrl.contains("speakersimages")) {
-                filePath = publicUrl.replace("speakersimages", abstractsUploadPath.replaceFirst("^/", "")) + "/" + filename;
-            } else {
-                filePath = publicUrl.replaceAll("/+$", "") + remotePath;
-            }
-        }
-
-        // Save submission to database immediately
-        roboticsAbstractSubmission submission = new roboticsAbstractSubmission(conferencecode, title, fullName, phoneNumber, emailAddress, organization, country, filePath);
-        roboticsAbstractSubmission saved = repository.save(submission);
-
-        // Upload file to FTP asynchronously in the background
-        uploadFileToFtpAsync(fileBytes, filename, saved.getId());
-
-        return saved;
-    }
-
-    @Async
-    public void uploadFileToFtpAsync(byte[] fileBytes, String filename, Long submissionId) {
         FTPClient ftp = new FTPClient();
-        try (InputStream input = new ByteArrayInputStream(fileBytes)) {
+        try (InputStream input = file.getInputStream()) {
             ftp.connect(ftpHost, ftpPort);
             boolean logged = ftp.login(ftpUser, ftpPassword);
             if (!logged) {
-                logger.error("FTP login failed for submission ID: {}", submissionId);
-                return;
+                throw new IOException("FTP login failed");
             }
             ftp.enterLocalPassiveMode();
             ftp.setFileType(FTP.BINARY_FILE_TYPE);
@@ -110,12 +74,24 @@ public class roboticsAbstractSubmissionService {
 
             boolean stored = ftp.storeFile(filename, input);
             if (!stored) {
-                logger.error("Failed to store file on FTP server for submission ID: {}", submissionId);
-            } else {
-                logger.info("Successfully uploaded abstract file for submission ID: {}", submissionId);
+                throw new IOException("Failed to store file on FTP server");
             }
-        } catch (IOException e) {
-            logger.error("FTP upload failed for submission ID: {} - {}", submissionId, e.getMessage());
+
+            String remotePath = abstractsUploadPath;
+            if (!remotePath.endsWith("/")) remotePath = remotePath + "/";
+            remotePath = remotePath + filename;
+
+            String filePath = remotePath;
+            if (publicUrl != null && !publicUrl.isBlank()) {
+                if (publicUrl.contains("speakersimages")) {
+                    filePath = publicUrl.replace("speakersimages", abstractsUploadPath.replaceFirst("^/", "")) + "/" + filename;
+                } else {
+                    filePath = publicUrl.replaceAll("/+$", "") + remotePath;
+                }
+            }
+
+            roboticsAbstractSubmission submission = new roboticsAbstractSubmission(conferencecode, title, fullName, phoneNumber, emailAddress, organization, country, filePath);
+            return repository.save(submission);
         } finally {
             if (ftp.isConnected()) {
                 try {
