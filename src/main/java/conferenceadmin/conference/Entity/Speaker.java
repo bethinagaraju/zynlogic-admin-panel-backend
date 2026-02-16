@@ -38,6 +38,9 @@ public class Speaker {
     @Column(nullable = true)
     private String partnerLogo;
 
+    @Column(nullable = true)
+    private String speakerrole;
+
     @OneToMany(mappedBy = "speaker", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<SpeakerSection> sections = new ArrayList<>();
@@ -45,7 +48,7 @@ public class Speaker {
     public Speaker() {
     }
 
-    public Speaker(String name, String university, String conferencecode, String imagePath, String speakerType, Integer orderIndex) {
+    public Speaker(String name, String university, String conferencecode, String imagePath, String speakerType, Integer orderIndex, String speakerrole) {
         this.name = name;
         this.university = university;
         this.conferencecode = conferencecode;
@@ -53,6 +56,7 @@ public class Speaker {
         this.speakerType = speakerType;
         this.orderIndex = orderIndex;
         this.visible = true;
+        this.speakerrole = speakerrole;
     }
 
     public Long getId() {
@@ -149,5 +153,13 @@ public class Speaker {
 
     public void setPartnerLogo(String partnerLogo) {
         this.partnerLogo = partnerLogo;
+    }
+
+    public String getSpeakerrole() {
+        return speakerrole;
+    }
+
+    public void setSpeakerrole(String speakerrole) {
+        this.speakerrole = speakerrole;
     }
 }

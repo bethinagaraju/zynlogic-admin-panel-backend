@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.cache.annotation.CacheEvict;
 import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.Objects;
 import java.util.List;
 import org.springframework.cache.annotation.Cacheable;
 import java.io.IOException;
@@ -46,13 +47,14 @@ public class SpeakerController {
             @RequestParam(value = "slug", required = false) String slug,
             @RequestParam(value = "linkedin", required = false) String linkedin,
             @RequestParam(value = "partnerLogo", required = false) MultipartFile partnerLogo,
+            @RequestParam(value = "speakerrole", required = false) String speakerrole,
             @RequestParam("username") String username,
             HttpServletRequest request
     ) {
         try {
-            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode, speakerType, visible, slug, linkedin, partnerLogo);
-            String newValues = String.format("Name: %s, University: %s, Conference: %s, Type: %s, Visible: %s",
-                                           name, university, conferencecode, speakerType, visible);
+            Speaker saved = speakerService.saveSpeaker(image, name, university, conferencecode, speakerType, visible, slug, linkedin, partnerLogo, speakerrole);
+            String newValues = String.format("Name: %s, University: %s, Conference: %s, Type: %s, Visible: %s, Speaker Role: %s",
+                                           name, university, conferencecode, speakerType, visible, speakerrole);
             auditService.logCreate(username, "Speaker", saved.getId().toString(), name, newValues, request, conferencecode);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (IOException e) {
@@ -80,6 +82,7 @@ public class SpeakerController {
             @RequestParam(value = "slug", required = false) String slug,
             @RequestParam(value = "linkedin", required = false) String linkedin,
             @RequestParam(value = "partnerLogo", required = false) MultipartFile partnerLogo,
+            @RequestParam(value = "speakerrole", required = false) String speakerrole,
             @RequestParam("username") String username,
             HttpServletRequest request
     ) {
@@ -89,15 +92,15 @@ public class SpeakerController {
 
             // uploaded file takes precedence over provided URL
             Speaker updated = speakerService.updateSpeaker(id, image, imageUrl, name, university, conferencecode, 
-                                                           speakerType, visible, slug, linkedin, partnerLogo);
+                                                           speakerType, visible, slug, linkedin, partnerLogo, speakerrole);
 
             // Always log the update attempt with details of what was requested to change
-            String requestedChanges = buildRequestedChangesString(name, university, conferencecode, speakerType, image, imageUrl, visible);
+            String requestedChanges = buildRequestedChangesString(name, university, conferencecode, speakerType, image, imageUrl, visible, speakerrole);
             String currentValues = buildCurrentValuesString(existingSpeaker);
             String updatedValues = buildUpdatedValuesString(updated);
 
             // Detect actual changes by comparing what was requested vs what actually changed
-            String actualChanges = buildActualChangesDescription(existingSpeaker, updated, name, university, conferencecode, speakerType, image, imageUrl, visible);
+            String actualChanges = buildActualChangesDescription(existingSpeaker, updated, name, university, conferencecode, speakerType, image, imageUrl, visible, speakerrole);
 
             auditService.logUpdate(username, "Speaker", id.toString(), updated.getName(),
                                  actualChanges,
@@ -153,7 +156,7 @@ public class SpeakerController {
         }
     }
 
-    private String buildRequestedChangesString(String name, String university, String conferencecode, String speakerType, MultipartFile image, String imageUrl, Boolean visible) {
+    private String buildRequestedChangesString(String name, String university, String conferencecode, String speakerType, MultipartFile image, String imageUrl, Boolean visible, String speakerrole) {
         StringBuilder requested = new StringBuilder("Update requested for: ");
         boolean hasChanges = false;
 
@@ -184,6 +187,11 @@ public class SpeakerController {
         if (visible != null) {
             if (hasChanges) requested.append(", ");
             requested.append("Visible");
+            hasChanges = true;
+        }
+        if (speakerrole != null) {
+            if (hasChanges) requested.append(", ");
+            requested.append("Speaker Role");
             hasChanges = true;
         }
 
@@ -234,7 +242,7 @@ public class SpeakerController {
         return hasChanges ? actual.toString() : "No actual changes made - values were already up to date";
     }
 
-    private String buildActualChangesDescription(Speaker existing, Speaker updated, String requestedName, String requestedUniversity, String requestedConferencecode, String requestedSpeakerType, MultipartFile requestedImage, String requestedImageUrl, Boolean requestedVisible) {
+    private String buildActualChangesDescription(Speaker existing, Speaker updated, String requestedName, String requestedUniversity, String requestedConferencecode, String requestedSpeakerType, MultipartFile requestedImage, String requestedImageUrl, Boolean requestedVisible, String requestedSpeakerrole) {
         StringBuilder description = new StringBuilder();
         boolean hasRequests = false;
 
@@ -303,6 +311,16 @@ public class SpeakerController {
                 description.append("Visible changed from '").append(existing.isVisible()).append("' to '").append(updated.isVisible()).append("'");
             } else {
                 description.append("Visible  updated to '").append(requestedVisible).append("' ");
+            }
+        }
+
+        if (requestedSpeakerrole != null && !requestedSpeakerrole.isBlank()) {
+            if (hasRequests) description.append("; ");
+            hasRequests = true;
+            if (!Objects.equals(existing.getSpeakerrole(), updated.getSpeakerrole())) {
+                description.append("Speaker Role changed from '").append(existing.getSpeakerrole()).append("' to '").append(updated.getSpeakerrole()).append("'");
+            } else {
+                description.append("Speaker Role  updated to '").append(requestedSpeakerrole).append("' ");
             }
         }
 

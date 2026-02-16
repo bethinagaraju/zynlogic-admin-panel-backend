@@ -47,7 +47,7 @@ public class SpeakerService {
     }
 
     public Speaker saveSpeaker(MultipartFile image, String name, String university, String conferencecode, String speakerType, boolean visible,
-                               String slug, String linkedin, MultipartFile partnerLogo) throws IOException {
+                               String slug, String linkedin, MultipartFile partnerLogo, String speakerrole) throws IOException {
         String original = Objects.requireNonNull(image.getOriginalFilename());
         String filename = System.currentTimeMillis() + "_" + original.replaceAll("[^a-zA-Z0-9._-]", "_");
 
@@ -108,10 +108,11 @@ public class SpeakerService {
             }
             imagePath += filename;
 
-            Speaker speaker = new Speaker(name, university, conferencecode, imagePath, speakerType, getNextOrderIndex(conferencecode));
+            Speaker speaker = new Speaker(name, university, conferencecode, imagePath, speakerType, getNextOrderIndex(conferencecode), null);
             speaker.setVisible(visible);
             if (slug != null && !slug.isBlank()) speaker.setSlug(slug);
             if (linkedin != null && !linkedin.isBlank()) speaker.setLinkedin(linkedin);
+            if (speakerrole != null && !speakerrole.isBlank()) speaker.setSpeakerrole(speakerrole);
             if (logoPath != null) speaker.setPartnerLogo(logoPath);
             
             return speakerRepository.save(speaker);
@@ -137,7 +138,7 @@ public class SpeakerService {
 
     public Speaker updateSpeaker(Long id, MultipartFile image, String imageUrl, String name, String university, 
                                   String conferencecode, String speakerType, Boolean visible, 
-                                  String slug, String linkedin, MultipartFile partnerLogo) throws IOException {
+                                  String slug, String linkedin, MultipartFile partnerLogo, String speakerrole) throws IOException {
         Optional<Speaker> opt = speakerRepository.findById(id);
         if (opt.isEmpty()) {
             throw new IOException("Speaker not found with id: " + id);
@@ -168,6 +169,10 @@ public class SpeakerService {
 
         if (linkedin != null && !linkedin.isBlank()) {
             speaker.setLinkedin(linkedin);
+        }
+
+        if (speakerrole != null && !speakerrole.isBlank()) {
+            speaker.setSpeakerrole(speakerrole);
         }
 
         // Handle partner logo file upload
