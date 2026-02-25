@@ -5,6 +5,7 @@ import conferenceadmin.conference.Repository.roboticsAbstractSubmissionRepositor
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -51,55 +52,75 @@ public class roboticsAbstractSubmissionService {
             throw new IllegalArgumentException("Only PDF and DOC/DOCX files are allowed");
         }
 
-        String originalFilename = file.getOriginalFilename();
-        String ext = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            ext = originalFilename.substring(originalFilename.lastIndexOf('.'));
-        }
-        String filename = "abstract_" + Instant.now().toEpochMilli() + ext;
+        // Save submission first with temporary path
+        roboticsAbstractSubmission submission = new roboticsAbstractSubmission(conferencecode, title, fullName, phoneNumber, emailAddress, organization, country, "uploading...");
+        roboticsAbstractSubmission saved = repository.save(submission);
 
-        FTPClient ftp = new FTPClient();
-        try (InputStream input = file.getInputStream()) {
-            ftp.connect(ftpHost, ftpPort);
-            boolean logged = ftp.login(ftpUser, ftpPassword);
-            if (!logged) {
-                throw new IOException("FTP login failed");
+        // Asynchronously upload file and update path
+        uploadFileAsync(saved.getId(), file);
+
+        return saved;
+    }
+
+    @Async
+    public void uploadFileAsync(Long submissionId, MultipartFile file) {
+        try {
+            roboticsAbstractSubmission submission = repository.findById(submissionId).orElse(null);
+            if (submission == null) return;
+
+            String originalFilename = file.getOriginalFilename();
+            String ext = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                ext = originalFilename.substring(originalFilename.lastIndexOf('.'));
             }
-            ftp.enterLocalPassiveMode();
-            ftp.setFileType(FTP.BINARY_FILE_TYPE);
+            String filename = "abstract_" + Instant.now().toEpochMilli() + ext;
 
-            if (abstractsUploadPath != null && !abstractsUploadPath.isEmpty()) {
-                ftp.changeWorkingDirectory(abstractsUploadPath);
-            }
+            FTPClient ftp = new FTPClient();
+            try (InputStream input = file.getInputStream()) {
+                ftp.connect(ftpHost, ftpPort);
+                boolean logged = ftp.login(ftpUser, ftpPassword);
+                if (!logged) {
+                    throw new IOException("FTP login failed");
+                }
+                ftp.enterLocalPassiveMode();
+                ftp.setFileType(FTP.BINARY_FILE_TYPE);
 
-            boolean stored = ftp.storeFile(filename, input);
-            if (!stored) {
-                throw new IOException("Failed to store file on FTP server");
-            }
+                if (abstractsUploadPath != null && !abstractsUploadPath.isEmpty()) {
+                    ftp.changeWorkingDirectory(abstractsUploadPath);
+                }
 
-            String remotePath = abstractsUploadPath;
-            if (!remotePath.endsWith("/")) remotePath = remotePath + "/";
-            remotePath = remotePath + filename;
+                boolean stored = ftp.storeFile(filename, input);
+                if (!stored) {
+                    throw new IOException("Failed to store file on FTP server");
+                }
 
-            String filePath = remotePath;
-            if (publicUrl != null && !publicUrl.isBlank()) {
-                if (publicUrl.contains("speakersimages")) {
-                    filePath = publicUrl.replace("speakersimages", abstractsUploadPath.replaceFirst("^/", "")) + "/" + filename;
-                } else {
-                    filePath = publicUrl.replaceAll("/+$", "") + remotePath;
+                String remotePath = abstractsUploadPath;
+                if (!remotePath.endsWith("/")) remotePath = remotePath + "/";
+                remotePath = remotePath + filename;
+
+                String filePath = remotePath;
+                if (publicUrl != null && !publicUrl.isBlank()) {
+                    if (publicUrl.contains("speakersimages")) {
+                        filePath = publicUrl.replace("speakersimages", abstractsUploadPath.replaceFirst("^/", "")) + "/" + filename;
+                    } else {
+                        filePath = publicUrl.replaceAll("/+$", "") + remotePath;
+                    }
+                }
+
+                submission.setAbstractFilePath(filePath);
+                repository.save(submission);
+            } finally {
+                if (ftp.isConnected()) {
+                    try {
+                        ftp.logout();
+                        ftp.disconnect();
+                    } catch (IOException ignored) {
+                    }
                 }
             }
-
-            roboticsAbstractSubmission submission = new roboticsAbstractSubmission(conferencecode, title, fullName, phoneNumber, emailAddress, organization, country, filePath);
-            return repository.save(submission);
-        } finally {
-            if (ftp.isConnected()) {
-                try {
-                    ftp.logout();
-                    ftp.disconnect();
-                } catch (IOException ignored) {
-                }
-            }
+        } catch (Exception e) {
+            // Log the error, but don't throw since it's async
+            System.err.println("Error uploading file: " + e.getMessage());
         }
     }
 
