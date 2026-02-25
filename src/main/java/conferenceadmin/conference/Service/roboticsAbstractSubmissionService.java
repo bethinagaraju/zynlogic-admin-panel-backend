@@ -5,6 +5,8 @@ import conferenceadmin.conference.Repository.roboticsAbstractSubmissionRepositor
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +20,7 @@ import java.util.List;
 public class roboticsAbstractSubmissionService {
 
     private final roboticsAbstractSubmissionRepository repository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${hostinger.ftp.host:}")
     private String ftpHost;
@@ -37,8 +40,9 @@ public class roboticsAbstractSubmissionService {
     @Value("${hostinger.public-url:}")
     private String publicUrl;
 
-    public roboticsAbstractSubmissionService(roboticsAbstractSubmissionRepository repository) {
+    public roboticsAbstractSubmissionService(roboticsAbstractSubmissionRepository repository, ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
+        this.eventPublisher = eventPublisher;
     }
 
     public roboticsAbstractSubmission submitAbstract(String conferencecode, String title, String fullName, String phoneNumber, String emailAddress, String organization, String country, MultipartFile file) throws IOException {
@@ -56,18 +60,20 @@ public class roboticsAbstractSubmissionService {
         roboticsAbstractSubmission submission = new roboticsAbstractSubmission(conferencecode, title, fullName, phoneNumber, emailAddress, organization, country, "uploading...");
         roboticsAbstractSubmission saved = repository.save(submission);
 
-        // Asynchronously upload file and update path
-        uploadFileAsync(saved.getId(), file);
+        // Publish event for async file upload
+        eventPublisher.publishEvent(new FileUploadEvent(this, saved.getId(), file));
 
         return saved;
     }
 
     @Async
-    public void uploadFileAsync(Long submissionId, MultipartFile file) {
+    @EventListener
+    public void handleFileUpload(FileUploadEvent event) {
         try {
-            roboticsAbstractSubmission submission = repository.findById(submissionId).orElse(null);
+            roboticsAbstractSubmission submission = repository.findById(event.getSubmissionId()).orElse(null);
             if (submission == null) return;
 
+            MultipartFile file = event.getFile();
             String originalFilename = file.getOriginalFilename();
             String ext = "";
             if (originalFilename != null && originalFilename.contains(".")) {
