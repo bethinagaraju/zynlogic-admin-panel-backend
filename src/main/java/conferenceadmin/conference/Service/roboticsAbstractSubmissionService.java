@@ -60,8 +60,12 @@ public class roboticsAbstractSubmissionService {
         roboticsAbstractSubmission submission = new roboticsAbstractSubmission(conferencecode, title, fullName, phoneNumber, emailAddress, organization, country, "uploading...");
         roboticsAbstractSubmission saved = repository.save(submission);
 
+        // Read file bytes immediately
+        byte[] fileBytes = file.getBytes();
+        String originalFilename = file.getOriginalFilename();
+
         // Publish event for async file upload
-        eventPublisher.publishEvent(new FileUploadEvent(this, saved.getId(), file));
+        eventPublisher.publishEvent(new FileUploadEvent(this, saved.getId(), fileBytes, originalFilename));
 
         return saved;
     }
@@ -73,8 +77,8 @@ public class roboticsAbstractSubmissionService {
             roboticsAbstractSubmission submission = repository.findById(event.getSubmissionId()).orElse(null);
             if (submission == null) return;
 
-            MultipartFile file = event.getFile();
-            String originalFilename = file.getOriginalFilename();
+            byte[] fileBytes = event.getFileBytes();
+            String originalFilename = event.getOriginalFilename();
             String ext = "";
             if (originalFilename != null && originalFilename.contains(".")) {
                 ext = originalFilename.substring(originalFilename.lastIndexOf('.'));
@@ -82,7 +86,7 @@ public class roboticsAbstractSubmissionService {
             String filename = "abstract_" + Instant.now().toEpochMilli() + ext;
 
             FTPClient ftp = new FTPClient();
-            try (InputStream input = file.getInputStream()) {
+            try (java.io.ByteArrayInputStream input = new java.io.ByteArrayInputStream(fileBytes)) {
                 ftp.connect(ftpHost, ftpPort);
                 boolean logged = ftp.login(ftpUser, ftpPassword);
                 if (!logged) {
